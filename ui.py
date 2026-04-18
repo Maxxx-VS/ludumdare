@@ -22,17 +22,21 @@ class UIRenderer:
         self.loading_frames = self._load_gif(Config.LOADING_GIF_PATH)
         self.gif_fps = 15
 
-        # Загрузка картинок поз с масштабированием под панель
+        # Вычисляем ширину боковой панели для максимального расширения картинок
+        panel_width = Config.WIN_WIDTH - self.right_panel_start
+        max_img_width = panel_width - (self.panel_margin * 2)
+        max_img_height = Config.WIN_HEIGHT // 2  # Ограничение по высоте, чтобы не перекрыть статистику внизу
+
+        # Загрузка и динамическое масштабирование картинок поз
         self.pose_images = {}
         for pose_key, path in Config.POSE_IMAGES.items():
             img = self._load_asset(path)
             if img:
                 rect = img.get_rect()
-                # Рассчитываем масштаб, чтобы картинка вписалась в панель (макс ширина ~280)
-                max_dim = 280
-                if rect.width > max_dim or rect.height > max_dim:
-                    scale = min(max_dim / rect.width, max_dim / rect.height)
-                    img = pygame.transform.smoothscale(img, (int(rect.width * scale), int(rect.height * scale)))
+                # Масштабируем до максимально возможного размера в панели
+                scale = min(max_img_width / rect.width, max_img_height / rect.height)
+                new_size = (int(rect.width * scale), int(rect.height * scale))
+                img = pygame.transform.smoothscale(img, new_size)
                 self.pose_images[pose_key] = img
 
     def _load_asset(self, path):
@@ -102,7 +106,7 @@ class UIRenderer:
             self.screen.fill((10, 10, 10))
             self.screen.blit(scaled_surf, (0, 0))
 
-        # 2. Отрисовка боковой панели
+        # 2. Отрисовка боковой панели (фон)
         panel_rect = pygame.Rect(self.right_panel_start, 0, Config.WIN_WIDTH - self.right_panel_start,
                                  Config.WIN_HEIGHT)
         s = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA)
@@ -110,35 +114,21 @@ class UIRenderer:
         self.screen.blit(s, (panel_rect.x, panel_rect.y))
         pygame.draw.rect(self.screen, (255, 255, 255), panel_rect, 2)
 
-        # 3. ВЕРХНЯЯ ЧАСТЬ: Задание (Картинка)
-        self._draw_text("ЗАДАНИЕ", (220, 220, 220),
-                        center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 20))
-
-        # Показываем картинку только если нет паузы после успеха
+        # 3. ВЕРХНЯЯ ЧАСТЬ: Задание (Только крупная картинка)
         if not game.is_paused:
             target_img = self.pose_images.get(game.target_pose)
             if target_img:
-                img_rect = target_img.get_rect(
-                    center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 180))
+                # Центрируем по ширине панели, прижимаем к верхнему краю с отступом panel_margin
+                img_rect = target_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
+                                                       self.panel_margin + target_img.get_height() // 2))
                 self.screen.blit(target_img, img_rect)
             else:
                 # Резервный текст, если картинка не загрузилась
                 target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
                 self._draw_text(target_text, (255, 255, 0),
-                                center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 150))
+                                center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 50))
 
-        # Статус (Верно/Неверно) под картинкой
-        show_success = game.completed or is_correct
-        status_text = "ВЕРНО" if show_success else "НЕВЕРНО"
-        status_color = (0, 255, 0) if show_success else (255, 80, 80)
-        self._draw_text(status_text, status_color,
-                        center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 340))
-
-        # Инфо об уровне
-        self._draw_text(f"Уровень: {game.current_level_index + 1} / {len(Config.LEVELS)}", (100, 200, 255),
-                        center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 400))
-
-        # 4. НИЖНЯЯ ЧАСТЬ: Статистика (всегда видна)
+        # 4. НИЖНЯЯ ЧАСТЬ: Статистика (всегда видна, нетронута)
         bottom_y = Config.WIN_HEIGHT - self.panel_margin
 
         # Рестарт
