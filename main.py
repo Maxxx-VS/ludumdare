@@ -1,5 +1,6 @@
 import pygame
 import cv2
+import numpy as np
 from config import Config
 from engine import PoseEngine
 from game_logic import GameEngine
@@ -9,6 +10,7 @@ from visuals import Renderer
 def main():
     pygame.init()
 
+    # Создаем полноэкранное окно
     screen = pygame.display.set_mode(
         (Config.WIN_WIDTH, Config.WIN_HEIGHT),
         pygame.FULLSCREEN | pygame.DOUBLEBUF
@@ -24,8 +26,17 @@ def main():
     game = GameEngine()
     view = Renderer()
 
-    pos_x = 0
-    pos_y = Config.WIN_HEIGHT - Config.CAM_HEIGHT
+    # --- РАСЧЕТ МАСШТАБИРОВАНИЯ ---
+    # Вычисляем коэффициент, чтобы изображение занимало всю высоту окна
+    scale_factor = Config.WIN_HEIGHT / Config.CAM_HEIGHT
+    # Ширина масштабируется пропорционально
+    scaled_width = int(Config.CAM_WIDTH * scale_factor)
+    scaled_height = Config.WIN_HEIGHT
+
+    # Центрируем по горизонтали (черные полосы по бокам, если экран 16:9, а камера 4:3)
+    pos_x = (Config.WIN_WIDTH - scaled_width) // 2
+    pos_y = 0
+    # ------------------------------
 
     running = True
     while running:
@@ -39,7 +50,7 @@ def main():
         if not ret: break
         frame = cv2.flip(frame, 1)
 
-        # Нейросеть
+        # Нейросеть работает с исходным размером 640x480
         results = pose_eng.model(frame, imgsz=640, device=0, verbose=False, conf=Config.CONFIDENCE)
 
         kpts = None
@@ -49,16 +60,21 @@ def main():
         cur_pose = pose_eng.classify(kpts)
         game.process_logic(cur_pose)
 
-        # Отрисовка
+        # Рисуем скелет и UI на маленьком кадре (экономим ресурсы)
         view.draw_skeleton(frame, kpts)
         view.draw_ui(frame, game, cur_pose)
 
-        # CV2 -> Pygame
+        # Конвертация CV2 (BGR) -> Pygame (RGB)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # Создаем поверхность из массива
         surf = pygame.surfarray.make_surface(frame_rgb.swapaxes(0, 1))
 
-        screen.fill((10, 10, 10))
-        screen.blit(surf, (pos_x, pos_y))
+        # --- МАСШТАБИРОВАНИЕ ПЕРЕД ОТРИСОВКОЙ ---
+        # Масштабируем поверхность до размеров экрана
+        scaled_surf = pygame.transform.scale(surf, (scaled_width, scaled_height))
+
+        screen.fill((10, 10, 10))  # Очистка экрана (черный фон)
+        screen.blit(scaled_surf, (pos_x, pos_y))  # Вывод отмасштабированного кадра
 
         pygame.display.flip()
         clock.tick(Config.FPS)
