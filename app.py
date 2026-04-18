@@ -6,6 +6,7 @@ from game_logic import GameEngine
 from visuals import Renderer
 from ui import UIRenderer
 
+
 class Application:
     def __init__(self):
         pygame.init()
@@ -16,19 +17,17 @@ class Application:
         pygame.display.set_caption("SIGNAL FLOW")
         self.clock = pygame.time.Clock()
 
-        # Настройка камеры
         self.cap = cv2.VideoCapture(0)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, Config.CAM_WIDTH)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Config.CAM_HEIGHT)
 
-        # Инициализация модулей
         self.pose_eng = PoseEngine()
         self.game = GameEngine()
         self.view = Renderer()
         self.ui_renderer = UIRenderer(self.screen)
 
         self.last_pose_change = pygame.time.get_ticks()
-        self.game_start_time = pygame.time.get_ticks() # НОВОЕ: Точка отсчета 30-секундного таймера
+        self.game_start_time = pygame.time.get_ticks()
         self.running = True
 
     def process_events(self):
@@ -38,34 +37,32 @@ class Application:
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
                 self.game.reset()
                 self.last_pose_change = pygame.time.get_ticks()
-                self.game_start_time = pygame.time.get_ticks() # НОВОЕ: Сброс 30-секундного таймера
+                self.game_start_time = pygame.time.get_ticks()
 
     def update_timer(self):
-        # НОВОЕ: Если игра выиграна или проиграна, останавливаем таймеры
         if self.game.state != "PLAYING":
             return
 
         current_time = pygame.time.get_ticks()
 
-        # НОВОЕ: Обработка главного 30-секундного таймера
+        # Главный таймер игры (30 сек)
         elapsed_sec = (current_time - self.game_start_time) // 1000
         self.game.time_left = max(0, 30 - elapsed_sec)
 
-        # НОВОЕ: Проверка на победу (время вышло, а жизни еще есть)
         if self.game.time_left <= 0:
             if self.game.lives > 0:
                 self.game.state = "WIN"
-            return # Выходим, чтобы 5-секундный таймер уже не сработал
+            return
 
-        # ИЗМЕНЕНО: Обработка 5-секундного таймера смены позы
-        if current_time - self.last_pose_change >= 5000:
-            # Если игрок не успел принять позу
+        # ИЗМЕНЕНО: Таймер смены позы сокращен до 3000мс (3 секунды)
+        if current_time - self.last_pose_change >= 3000:
+            # Если время вышло и поза не была принята
             if not self.game.completed:
                 self.game.lives -= 1
                 if self.game.lives <= 0:
                     self.game.state = "LOSE"
 
-            # Смена позы происходит, только если мы всё ещё играем
+            # Смена позы по истечении времени
             if self.game.state == "PLAYING":
                 self.game.next_pose()
                 self.last_pose_change = current_time
@@ -80,7 +77,6 @@ class Application:
                 break
             frame = cv2.flip(frame, 1)
 
-            # Распознавание позы
             results = self.pose_eng.model(frame, imgsz=640, device=0, verbose=False, conf=Config.CONFIDENCE)
 
             kpts = None
@@ -88,12 +84,20 @@ class Application:
                 kpts = results[0].keypoints.data.cpu().numpy()[0]
 
             cur_pose = self.pose_eng.classify(kpts)
+
+            # ИЗМЕНЕНО: Логика мгновенного успеха
             is_correct = self.game.update(cur_pose)
 
-            # Отрисовка скелета (через OpenCV)
-            self.view.draw_skeleton(frame, kpts)
+            # Если игрок только что верно выполнил позу
+            if is_correct and self.game.completed:
+                # Добавляем жизнь (максимум 10, так как в UI отрисовывается 10 делений)
+                self.game.lives = min(self.game.lives + 1, 10)
+                # Сразу переключаем на следующую позу
+                self.game.next_pose()
+                # Сбрасываем 3-секундный таймер
+                self.last_pose_change = pygame.time.get_ticks()
 
-            # Отрисовка интерфейса и финального кадра (через Pygame)
+            self.view.draw_skeleton(frame, kpts)
             self.ui_renderer.draw(frame, self.game, cur_pose, is_correct)
 
             pygame.display.flip()
