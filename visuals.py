@@ -14,15 +14,20 @@ class Renderer:
 
         # Рисуем соединения (кости)
         for start, end in Config.SKELETON_LINKS:
-            # Проверяем, что индексы существуют и confidence достаточный
             if start < len(kpts) and end < len(kpts):
                 if kpts[start][2] > 0.5 and kpts[end][2] > 0.5:
                     p1 = tuple(kpts[start][:2].astype(int))
                     p2 = tuple(kpts[end][:2].astype(int))
                     cv2.line(frame, p1, p2, (0, 255, 0), line_thickness)
 
-        # Рисуем красные круги на всех узлах (суставах) с достаточной уверенностью
+        # Исключаем лицевые точки (нос, глаза, уши) – индексы 0..4
+        face_indices = {0, 1, 2, 3, 4}
+
+        # Рисуем красные круги на всех узлах (суставах) с достаточной уверенностью,
+        # кроме лицевых точек
         for i, pt in enumerate(kpts):
+            if i in face_indices:
+                continue  # пропускаем лицо
             if pt[2] > 0.5:  # confidence > 0.5
                 x, y = int(pt[0]), int(pt[1])
                 # Проверяем границы кадра
