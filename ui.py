@@ -27,16 +27,11 @@ class UIRenderer:
         max_img_width = panel_width - (self.panel_margin * 2)
         max_img_height = Config.WIN_HEIGHT // 2  # Ограничение по высоте, чтобы не перекрыть статистику внизу
 
-        # Загрузка и динамическое масштабирование картинок поз
+        # ЗАГРУЗКА БЕЗ СКАЛИРОВАНИЯ (исходный размер файла)
         self.pose_images = {}
         for pose_key, path in Config.POSE_IMAGES.items():
             img = self._load_asset(path)
             if img:
-                rect = img.get_rect()
-                # Масштабируем до максимально возможного размера в панели
-                scale = min(max_img_width / rect.width, max_img_height / rect.height)
-                new_size = (int(rect.width * scale), int(rect.height * scale))
-                img = pygame.transform.smoothscale(img, new_size)
                 self.pose_images[pose_key] = img
 
     def _load_asset(self, path):
