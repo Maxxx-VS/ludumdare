@@ -6,7 +6,7 @@ class GameEngine:
         self.score = 0
         self.target_pose = None
         self.completed = False
-        self.lives = 10         # НОВОЕ: Запас жизней
+        self.lives = 5         # НОВОЕ: Запас жизней
         self.time_left = 30     # НОВОЕ: Основной таймер игры
         self.state = "PLAYING"  # НОВОЕ: Статус (PLAYING, WIN, LOSE)
         self.reset()
