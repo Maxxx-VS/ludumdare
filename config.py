@@ -8,9 +8,9 @@ class Config:
     CONFIDENCE = 0.6
     FPS = 30
 
-    # ПУТИ К ГРАФИКЕ
-    LOGO_PATH = "logo.png"
-    LOADING_GIF_PATH = os.path.join("graphics", "loading.gif") # Убедитесь, что папка и файл есть
+    # ПУТИ К ГРАФИКЕ (теперь всё в ./graphics/)
+    LOGO_PATH = "./graphics/logo.png"
+    LOADING_GIF_PATH = "./graphics/loading.gif"
 
     POINTS = {
         'L_SHOULDER': 5, 'R_SHOULDER': 6, 'L_ELBOW': 7, 'R_ELBOW': 8,

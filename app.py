@@ -1,12 +1,11 @@
 import pygame
 import cv2
-import time
 from config import Config
-# Импорты PoseEngine теперь внутри метода для скорости запуска окна
 from game_logic import GameEngine
-from visuals import Renderer
 from ui import UIRenderer
 
+
+# PoseEngine и Renderer импортируем только при необходимости, чтобы ускорить старт окна
 
 class Application:
     def __init__(self):
@@ -18,62 +17,57 @@ class Application:
         pygame.display.set_caption("SIGNAL FLOW")
         self.clock = pygame.time.Clock()
 
-        # Инициализируем только UI и Логику
         self.game = GameEngine()
         self.ui_renderer = UIRenderer(self.screen)
 
-        # Объекты CV создадим позже
         self.pose_eng = None
         self.cap = None
         self.view = None
 
-        self.start_time = pygame.time.get_ticks()
+        self.start_ticks = pygame.time.get_ticks()
         self.last_pose_change = 0
-        self.game_start_time = 0
+        self.game_start_ticks = 0
         self.success_time = 0
         self.running = True
 
-        self.cv_initialized = False
-
     def init_cv(self):
-        """Ленивая инициализация тяжелых ресурсов."""
-        from engine import PoseEngine  # Импорт здесь, чтобы окно не висело
+        """Загрузка нейросети и камеры."""
+        from engine import PoseEngine
+        from visuals import Renderer
+        self.pose_eng = PoseEngine()
+        self.view = Renderer()
         self.cap = cv2.VideoCapture(0)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, Config.CAM_WIDTH)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Config.CAM_HEIGHT)
-        self.pose_eng = PoseEngine()
-        self.view = Renderer()
-        self.cv_initialized = True
 
     def update_timer(self):
         current_time = pygame.time.get_ticks()
 
-        # 1. Этап логотипа (3 секунды)
+        # 1. Логика логотипа (3 секунды)
         if self.game.state == "SPLASH":
-            if current_time - self.start_time > 3000:
+            if current_time - self.start_ticks >= 3000:
                 self.game.state = "LOADING"
             return
 
-        # 2. Этап загрузки нейросети и камеры
+        # 2. Логика загрузки CV
         if self.game.state == "LOADING":
-            # Рисуем один кадр загрузки, чтобы пользователь его увидел
+            # Сначала отрисуем кадр загрузки, чтобы он появился на экране
             self.ui_renderer.draw(None, self.game, "UNKNOWN", False)
             pygame.display.flip()
 
-            # Запускаем инициализацию (это займет несколько секунд)
+            # Тяжелая операция инициализации
             self.init_cv()
 
-            # Переходим к игре
+            # Переходим в игру
             self.game.state = "PLAYING"
-            self.game_start_time = pygame.time.get_ticks()
+            self.game_start_ticks = pygame.time.get_ticks()
             self.last_pose_change = pygame.time.get_ticks()
             return
 
-        # --- Остальная логика игры (когда PLAYING) ---
+        # 3. Игровая логика
         if self.game.state != "PLAYING": return
 
-        # (Ваша существующая логика таймеров и пауз из предыдущего шага)
-        elapsed_sec = (current_time - self.game_start_time) // 1000
+        elapsed_sec = (current_time - self.game_start_ticks) // 1000
         self.game.time_left = max(0, 30 - elapsed_sec)
 
         if self.game.time_left <= 0:
@@ -99,14 +93,16 @@ class Application:
             self.process_events()
             self.update_timer()
 
-            # Если мы на стадии заставки или загрузки - просто рисуем UI и пропускаем CV блок
+            # Если мы всё еще в режиме заставок — пропускаем обработку камеры
             if self.game.state in ["SPLASH", "LOADING"]:
-                self.ui_renderer.draw(None, self.game, "UNKNOWN", False)
-                pygame.display.flip()
+                # Отрисовка происходит внутри update_timer для LOADING или здесь для SPLASH
+                if self.game.state == "SPLASH":
+                    self.ui_renderer.draw(None, self.game, "UNKNOWN", False)
+                    pygame.display.flip()
                 self.clock.tick(Config.FPS)
                 continue
 
-            # Игровой процесс с камерой
+            # Основной цикл игры
             ret, frame = self.cap.read()
             if not ret: break
             frame = cv2.flip(frame, 1)
@@ -139,7 +135,7 @@ class Application:
                 if self.game.state not in ["SPLASH", "LOADING"]:
                     self.game.reset()
                     self.last_pose_change = pygame.time.get_ticks()
-                    self.game_start_time = pygame.time.get_ticks()
+                    self.game_start_ticks = pygame.time.get_ticks()
 
     def cleanup(self):
         if self.cap: self.cap.release()

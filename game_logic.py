@@ -1,7 +1,6 @@
 import random
 from config import Config
 
-
 class GameEngine:
     def __init__(self):
         self.score = 0
@@ -9,8 +8,7 @@ class GameEngine:
         self.completed = False
         self.lives = 5
         self.time_left = 30
-        # ИЗМЕНЕНО: Начальное состояние теперь SPLASH (логотип)
-        self.state = "SPLASH"
+        self.state = "SPLASH"  # Начинаем с логотипа
         self.is_paused = False
         self.reset()
 
@@ -19,7 +17,7 @@ class GameEngine:
         self.completed = False
         self.lives = 5
         self.time_left = 30
-        # Если мы делаем рестарт кнопкой, возвращаемся в игру, а не к логотипу
+        # Если игра уже шла, ресет не возвращает к логотипу
         if self.state not in ["SPLASH", "LOADING"]:
             self.state = "PLAYING"
         self.is_paused = False
@@ -38,5 +36,4 @@ class GameEngine:
             self.score += 10
             self.completed = True
             return True
-
         return current_pose == self.target_pose
