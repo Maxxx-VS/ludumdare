@@ -1,34 +1,26 @@
 import random
-from collections import deque
 from config import Config
-
-class SignalBlock:
-    def __init__(self, pose):
-        self.target_pose = pose
-        self.status = "PENDING" # PENDING, DONE, FAIL
 
 class GameEngine:
     def __init__(self):
         self.score = 0
-        self.active_signals = deque()
+        self.target_pose = None
+        self.completed = False
         self.reset()
 
     def reset(self):
+        """Сброс игры: новый таргет, обнуление счёта и флага выполнения"""
         self.score = 0
-        self.active_signals.clear()
-        self.spawn_signal()
+        self.completed = False
+        self.target_pose = random.choice(Config.POSES)
 
-    def spawn_signal(self):
-        new_pose = random.choice(Config.POSES)
-        self.active_signals.append(SignalBlock(new_pose))
-
-    def process_logic(self, current_pose):
-        if not self.active_signals:
-            self.spawn_signal()
-            return
-
-        target = self.active_signals[0]
-        if current_pose == target.target_pose:
+    def update(self, current_pose):
+        """
+        Обновляет состояние игры.
+        Возвращает True, если текущая поза совпадает с целевой (для отображения индикатора).
+        Начисляет очки только один раз, когда поза становится правильной.
+        """
+        if not self.completed and current_pose == self.target_pose:
             self.score += 10
-            self.active_signals.popleft()
-            self.spawn_signal()
+            self.completed = True
+        return current_pose == self.target_pose

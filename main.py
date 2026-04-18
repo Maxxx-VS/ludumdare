@@ -16,7 +16,6 @@ def main():
     pygame.display.set_caption("SIGNAL FLOW")
     clock = pygame.time.Clock()
 
-    # Шрифт для UI (один раз)
     font = pygame.font.Font(None, 42)
 
     cap = cv2.VideoCapture(0)
@@ -27,7 +26,6 @@ def main():
     game = GameEngine()
     view = Renderer()
 
-    # Масштабирование
     scale_factor = Config.WIN_HEIGHT / Config.CAM_HEIGHT
     scaled_width = int(Config.CAM_WIDTH * scale_factor)
     scaled_height = Config.WIN_HEIGHT
@@ -54,11 +52,10 @@ def main():
             kpts = results[0].keypoints.data.cpu().numpy()[0]
 
         cur_pose = pose_eng.classify(kpts)
-        game.process_logic(cur_pose)
+        is_correct = game.update(cur_pose)   # обновляем игру и получаем флаг совпадения
 
-        # Рисуем скелет на кадре (OpenCV)
+        # Рисуем скелет
         view.draw_skeleton(frame, kpts)
-        # UI через OpenCV больше не вызываем
 
         # Конвертация и масштабирование кадра
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -68,22 +65,34 @@ def main():
         screen.fill((10, 10, 10))
         screen.blit(scaled_surf, (pos_x, pos_y))
 
-        # Разделительная линия в правой части
+        # Разделительная линия (если нужно)
         if scaled_width < Config.WIN_WIDTH:
             line_y = Config.WIN_HEIGHT // 2
             start_x = scaled_width
             end_x = Config.WIN_WIDTH - 1
             pygame.draw.line(screen, (255, 255, 255), (start_x, line_y), (end_x, line_y), 2)
 
-        # --- ОТРИСОВКА UI ЧЕРЕЗ PYGAME (правая нижняя часть) ---
         margin = 20
-        # Счёт
+
+        # --- ЗАДАНИЕ (сверху) ---
+        target_text = f"Задание: {Config.POSE_NAMES_RU.get(game.target_pose, '???')}"
+        target_surf = font.render(target_text, True, (255, 255, 0))
+        target_rect = target_surf.get_rect(topleft=(margin, margin))
+        screen.blit(target_surf, target_rect)
+
+        correct_text = "True" if is_correct else "False"
+        correct_color = (0, 255, 0) if is_correct else (255, 0, 0)
+        correct_surf = font.render(correct_text, True, correct_color)
+        correct_rect = correct_surf.get_rect(topleft=(margin, margin + 50))
+        screen.blit(correct_surf, correct_rect)
+
+        # --- СЧЁТ (справа внизу) ---
         score_text = f"Score: {game.score}"
         score_surf = font.render(score_text, True, (255, 255, 255))
         score_rect = score_surf.get_rect(bottomright=(Config.WIN_WIDTH - margin, Config.WIN_HEIGHT - margin))
         screen.blit(score_surf, score_rect)
 
-        # Текущая поза
+        # --- ТЕКУЩАЯ ПОЗА (под счётом) ---
         pose_name = Config.POSE_NAMES_RU.get(cur_pose, "---")
         pose_color = (0, 255, 0) if cur_pose != "UNKNOWN" else (255, 0, 0)
         pose_surf = font.render(pose_name, True, pose_color)
