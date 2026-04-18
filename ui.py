@@ -42,15 +42,16 @@ class UIRenderer:
         self._draw_text("ЗАДАНИЕ", (220, 220, 220),
                         center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 20))
 
-        target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
+        # ИЗМЕНЕНО: Если пауза — не показываем название позы
+        target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???") if not game.is_paused else "---"
         self._draw_text(target_text, (255, 255, 0),
                         center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 100))
 
-        status_text = "ВЕРНО" if is_correct else "НЕВЕРНО"
-        status_color = (0, 255, 0) if is_correct else (255, 80, 80)
+        # ИЗМЕНЕНО: Надпись ВЕРНО будет висеть всю секунду паузы (через game.completed)
+        status_text = "ВЕРНО" if game.completed or is_correct else "НЕВЕРНО"
+        status_color = (0, 255, 0) if (game.completed or is_correct) else (255, 80, 80)
         self._draw_text(status_text, status_color,
                         center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 180))
-
         # 5. ИЗМЕНЕНО: Нижние UI элементы (выровнены, добавлены жизни и таймер)
         bottom_y = Config.WIN_HEIGHT - self.panel_margin
 

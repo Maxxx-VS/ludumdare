@@ -10,6 +10,7 @@ class GameEngine:
         self.lives = 5
         self.time_left = 30
         self.state = "PLAYING"
+        self.is_paused = False  # НОВОЕ: состояние паузы после успеха
         self.reset()
 
     def reset(self):
@@ -18,20 +19,20 @@ class GameEngine:
         self.lives = 5
         self.time_left = 30
         self.state = "PLAYING"
+        self.is_paused = False  # Сброс паузы
         self.target_pose = random.choice(Config.POSES)
 
     def next_pose(self):
         self.target_pose = random.choice(Config.POSES)
         self.completed = False
+        self.is_paused = False  # Выходим из паузы при смене позы
 
     def update(self, current_pose):
-        if self.state != "PLAYING":
+        if self.state != "PLAYING" or self.is_paused: # ИЗМЕНЕНО: Не считаем позы во время паузы
             return False
 
-        # Если текущая поза совпала с целью и мы еще не пометили её как выполненную
         if not self.completed and current_pose == self.target_pose:
             self.score += 10
             self.completed = True
-            return True  # Возвращаем True только в момент успеха
-
+            return True
         return current_pose == self.target_pose
