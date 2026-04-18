@@ -1,21 +1,28 @@
 import os
-import cv2
-import numpy as np
-import random
 from ultralytics import YOLO
-from collections import deque
+from config import Config
 
-class Config:
-    MODEL_PT = "yolo11s-pose.pt"
-    MODEL_ENGINE = "yolo11s-pose.engine"
-    CAM_WIDTH, CAM_HEIGHT = 640, 480
-    WIN_WIDTH, WIN_HEIGHT = 1920, 1080
-    CONFIDENCE = 0.6
-    FPS = 30
-    # ... (оставьте здесь все POINTS, SKELETON_LINKS, POSES и POSE_NAMES_RU из оригинала)
-    POINTS = {'L_SHOULDER': 5, 'R_SHOULDER': 6, 'L_ELBOW': 7, 'R_ELBOW': 8, 'L_WRIST': 9, 'R_WRIST': 10, 'L_HIP': 11, 'R_HIP': 12, 'L_KNEE': 13, 'R_KNEE': 14, 'L_ANKLE': 15, 'R_ANKLE': 16}
-    SKELETON_LINKS = [(5, 6), (5, 7), (7, 9), (6, 8), (8, 10), (5, 11), (6, 12), (11, 12), (11, 13), (13, 15), (12, 14), (14, 16)]
-    POSES = ["T_POSE", "HANDS_UP", "SQUAT", "LEFT_LEAN", "RIGHT_LEAN", "CROSS_ARMS"]
-    POSE_NAMES_RU = {"T_POSE": "Руки в стороны", "HANDS_UP": "Руки вверх", "SQUAT": "Присед", "LEFT_LEAN": "Наклон влево", "RIGHT_LEAN": "Наклон вправо", "CROSS_ARMS": "Руки крестом", "UNKNOWN": "---"}
 
-# Вставьте сюда ваши классы PoseEngine, SignalBlock, GameEngine и Renderer полностью без изменений
+class PoseEngine:
+    def __init__(self):
+        # Выбираем .engine если есть, иначе .pt
+        model_path = Config.MODEL_ENGINE if os.path.exists(Config.MODEL_ENGINE) else Config.MODEL_PT
+        self.model = YOLO(model_path)
+
+    def classify(self, kpts):
+        if kpts is None:
+            return "UNKNOWN"
+
+        # Пример простейшей логики классификации (упрощенно)
+        # Здесь должна быть твоя математика углов/координат
+        try:
+            lw, rw = kpts[9], kpts[10]  # Запястья
+            ls, rs = kpts[5], kpts[6]  # Плечи
+
+            if lw[1] < ls[1] and rw[1] < rs[1]: return "HANDS_UP"
+            if abs(lw[1] - ls[1]) < 40 and abs(rw[1] - rs[1]) < 40: return "T_POSE"
+            # ... и так далее для всех поз
+        except:
+            pass
+
+        return "UNKNOWN"
