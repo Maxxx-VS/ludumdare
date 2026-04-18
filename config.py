@@ -1,3 +1,5 @@
+import os
+
 class Config:
     MODEL_PT = "yolo11s-pose.pt"
     MODEL_ENGINE = "yolo11s-pose.engine"
@@ -5,6 +7,10 @@ class Config:
     WIN_WIDTH, WIN_HEIGHT = 1920, 1080
     CONFIDENCE = 0.6
     FPS = 30
+
+    # ПУТИ К ГРАФИКЕ
+    LOGO_PATH = "logo.png"
+    LOADING_GIF_PATH = os.path.join("graphics", "loading.gif") # Убедитесь, что папка и файл есть
 
     POINTS = {
         'L_SHOULDER': 5, 'R_SHOULDER': 6, 'L_ELBOW': 7, 'R_ELBOW': 8,
@@ -17,14 +23,7 @@ class Config:
         (6, 12), (11, 12), (11, 13), (13, 15), (12, 14), (14, 16)
     ]
 
-    # Только актуальные позы
-    POSES = [
-        "T_POSE",
-        "HANDS_UP",
-        "ONE_HAND_UP",
-        "ONE_HAND_SIDE",
-        "STAR"
-    ]
+    POSES = ["T_POSE", "HANDS_UP", "ONE_HAND_UP", "ONE_HAND_SIDE", "STAR"]
 
     POSE_NAMES_RU = {
         "T_POSE": "Руки в стороны",
