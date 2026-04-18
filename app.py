@@ -28,6 +28,7 @@ class Application:
         self.ui_renderer = UIRenderer(self.screen)
 
         self.last_pose_change = pygame.time.get_ticks()
+        self.game_start_time = pygame.time.get_ticks() # НОВОЕ: Точка отсчета 30-секундного таймера
         self.running = True
 
     def process_events(self):
@@ -37,12 +38,37 @@ class Application:
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
                 self.game.reset()
                 self.last_pose_change = pygame.time.get_ticks()
+                self.game_start_time = pygame.time.get_ticks() # НОВОЕ: Сброс 30-секундного таймера
 
     def update_timer(self):
+        # НОВОЕ: Если игра выиграна или проиграна, останавливаем таймеры
+        if self.game.state != "PLAYING":
+            return
+
         current_time = pygame.time.get_ticks()
+
+        # НОВОЕ: Обработка главного 30-секундного таймера
+        elapsed_sec = (current_time - self.game_start_time) // 1000
+        self.game.time_left = max(0, 30 - elapsed_sec)
+
+        # НОВОЕ: Проверка на победу (время вышло, а жизни еще есть)
+        if self.game.time_left <= 0:
+            if self.game.lives > 0:
+                self.game.state = "WIN"
+            return # Выходим, чтобы 5-секундный таймер уже не сработал
+
+        # ИЗМЕНЕНО: Обработка 5-секундного таймера смены позы
         if current_time - self.last_pose_change >= 5000:
-            self.game.next_pose()
-            self.last_pose_change = current_time
+            # Если игрок не успел принять позу
+            if not self.game.completed:
+                self.game.lives -= 1
+                if self.game.lives <= 0:
+                    self.game.state = "LOSE"
+
+            # Смена позы происходит, только если мы всё ещё играем
+            if self.game.state == "PLAYING":
+                self.game.next_pose()
+                self.last_pose_change = current_time
 
     def run(self):
         while self.running:

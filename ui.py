@@ -38,7 +38,7 @@ class UIRenderer:
         self.screen.blit(s, (panel_rect.x, panel_rect.y))
         pygame.draw.rect(self.screen, (255, 255, 255), panel_rect, 2)
 
-        # 4. UI элементы
+        # 4. Верхние UI элементы
         self._draw_text("ЗАДАНИЕ", (220, 220, 220),
                         center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 20))
 
@@ -51,17 +51,51 @@ class UIRenderer:
         self._draw_text(status_text, status_color,
                         center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 180))
 
-        score_text = f"Счёт: {game.score}"
-        self._draw_text(score_text, (255, 255, 255),
-                        bottomright=(Config.WIN_WIDTH - self.panel_margin, Config.WIN_HEIGHT - self.panel_margin))
+        # 5. ИЗМЕНЕНО: Нижние UI элементы (выровнены, добавлены жизни и таймер)
+        bottom_y = Config.WIN_HEIGHT - self.panel_margin
+
+        self._draw_text("R / SPACE — рестарт", (180, 180, 180), is_small=True,
+                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y))
 
         pose_name = Config.POSE_NAMES_RU.get(cur_pose, "---")
         pose_color = (0, 255, 0) if cur_pose != "UNKNOWN" else (255, 100, 100)
         self._draw_text(f"Текущая: {pose_name}", pose_color, is_small=True,
-                        bottomright=(Config.WIN_WIDTH - self.panel_margin, Config.WIN_HEIGHT - self.panel_margin - 50))
+                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 40))
 
-        self._draw_text("R / SPACE — новая поза", (180, 180, 180), is_small=True,
-                        bottomright=(Config.WIN_WIDTH - self.panel_margin, Config.WIN_HEIGHT - self.panel_margin - 100))
+        # НОВОЕ: Отрисовка жизней (10 прямоугольников)
+        rect_w = 20
+        rect_h = 15
+        gap = 5
+        total_w = 10 * rect_w + 9 * gap
+        start_x = Config.WIN_WIDTH - self.panel_margin - total_w
+        start_y = bottom_y - 80
+
+        for i in range(10):
+            # Зеленый, если жизнь есть, серый если потрачена
+            color = (0, 255, 0) if i < game.lives else (100, 100, 100)
+            pygame.draw.rect(self.screen, color, (start_x + i * (rect_w + gap), start_y, rect_w, rect_h))
+
+        # НОВОЕ: Отрисовка 30-секундного таймера
+        timer_text = f"Осталось: {game.time_left} сек"
+        timer_color = (255, 255, 255) if game.time_left > 10 else (255, 100, 100) # Краснеет к концу
+        self._draw_text(timer_text, timer_color,
+                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 110))
+
+        # Счёт
+        score_text = f"Счёт: {game.score}"
+        self._draw_text(score_text, (255, 255, 255),
+                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 150))
+
+        # 6. НОВОЕ: Оверлей статуса завершения игры (Победа / Поражение)
+        if game.state in ["WIN", "LOSE"]:
+            overlay = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA)
+            overlay_color = (0, 50, 0, 200) if game.state == "WIN" else (50, 0, 0, 200)
+            overlay.fill(overlay_color)
+            self.screen.blit(overlay, (panel_rect.x, panel_rect.y))
+
+            text = "ПОБЕДА!" if game.state == "WIN" else "ИГРА ОКОНЧЕНА"
+            text_color = (0, 255, 0) if game.state == "WIN" else (255, 50, 50)
+            self._draw_text(text, text_color, center=(self.right_panel_start + panel_rect.width // 2, Config.WIN_HEIGHT // 2))
 
     def _draw_text(self, text, color, center=None, bottomright=None, is_small=False):
         """Вспомогательный метод для удобной отрисовки текста."""
