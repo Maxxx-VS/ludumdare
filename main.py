@@ -36,6 +36,9 @@ def main():
     right_panel_start = scaled_width
     panel_margin = 30
 
+    # Таймер автоматической смены позы
+    last_pose_change = pygame.time.get_ticks()
+
     running = True
     while running:
         for event in pygame.event.get():
@@ -43,6 +46,13 @@ def main():
                 running = False
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
                 game.reset()
+                last_pose_change = pygame.time.get_ticks()  # сброс таймера
+
+        # Автоматическая смена позы каждые 5 секунд
+        current_time = pygame.time.get_ticks()
+        if current_time - last_pose_change >= 5000:
+            game.next_pose()
+            last_pose_change = current_time
 
         ret, frame = cap.read()
         if not ret:
@@ -67,7 +77,7 @@ def main():
         screen.fill((10, 10, 10))
         screen.blit(scaled_surf, (pos_x, pos_y))
 
-        # ========== БЕЛАЯ РАЗДЕЛИТЕЛЬНАЯ ЛИНИЯ ==========
+        # Белая разделительная линия
         if scaled_width < Config.WIN_WIDTH:
             pygame.draw.line(screen, (255, 255, 255),
                              (scaled_width, 0), (scaled_width, Config.WIN_HEIGHT), 3)
@@ -79,10 +89,9 @@ def main():
         s.fill((0, 0, 0, 180))
         screen.blit(s, (panel_rect.x, panel_rect.y))
 
-        # Белая рамка вокруг панели (опционально)
         pygame.draw.rect(screen, (255, 255, 255), panel_rect, 2)
 
-        # Остальной UI...
+        # UI элементы
         title_surf = font.render("ЗАДАНИЕ", True, (220, 220, 220))
         title_rect = title_surf.get_rect(center=(right_panel_start + panel_rect.width//2,
                                                  panel_margin + 20))
