@@ -1,0 +1,6 @@
+__pycache__/
+yolov8n-pose.engine
+yolov8n-pose.pt
+yolov8n-pose.onnx
+yolo11s-pose.onnx
+yolo11s-pose.pt
