@@ -22,16 +22,21 @@ class UIRenderer:
         self.loading_frames = self._load_gif(Config.LOADING_GIF_PATH)
         self.gif_fps = 15
 
-        # Вычисляем ширину боковой панели для максимального расширения картинок
+        # Ширина боковой панели
         panel_width = Config.WIN_WIDTH - self.right_panel_start
-        max_img_width = panel_width - (self.panel_margin * 2)
-        max_img_height = Config.WIN_HEIGHT // 2  # Ограничение по высоте, чтобы не перекрыть статистику внизу
+        # Отступ (слева и справа)
+        img_display_width = panel_width - (self.panel_margin * 2)
 
-        # ЗАГРУЗКА БЕЗ СКАЛИРОВАНИЯ (исходный размер файла)
+        # Загрузка картинок с масштабированием только под ширину панели
         self.pose_images = {}
         for pose_key, path in Config.POSE_IMAGES.items():
             img = self._load_asset(path)
             if img:
+                rect = img.get_rect()
+                # Масштабируем строго по ширине панели (сохраняя пропорции)
+                scale = img_display_width / rect.width
+                new_size = (int(rect.width * scale), int(rect.height * scale))
+                img = pygame.transform.smoothscale(img, new_size)
                 self.pose_images[pose_key] = img
 
     def _load_asset(self, path):
