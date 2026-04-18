@@ -71,11 +71,6 @@ class UIRenderer:
 
             rect = current_frame.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2))
             self.screen.blit(current_frame, rect)
-
-            # Добавим надпись загрузки
-            load_text = self.font.render("ЗАГРУЗКА НЕЙРОСЕТИ...", True, (255, 255, 255))
-            self.screen.blit(load_text,
-                             load_text.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 100)))
         else:
             self._draw_error("GIF ЗАГРУЗКИ НЕ НАЙДЕН")
 
