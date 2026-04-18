@@ -1,5 +1,6 @@
 import pygame
 import cv2
+import threading  # НОВОЕ: для фоновой загрузки
 from config import Config
 from game_logic import GameEngine
 from ui import UIRenderer
@@ -28,37 +29,57 @@ class Application:
         self.success_time = 0
         self.running = True
 
-    def init_cv(self):
-        """Загрузка нейросети и камеры."""
-        from engine import PoseEngine
-        from visuals import Renderer
-        self.pose_eng = PoseEngine()
-        self.view = Renderer()
-        self.cap = cv2.VideoCapture(0)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, Config.CAM_WIDTH)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Config.CAM_HEIGHT)
+        # Переменные для контроля потока загрузки
+        self.cv_loading_thread = None
+        self.cv_initialized = False
+
+    def init_cv_task(self):
+        """Задача для фонового потока: загрузка нейросети и камеры."""
+        try:
+            from engine import PoseEngine
+            from visuals import Renderer
+
+            # Сначала создаем движок (это самое долгое)
+            temp_pose_eng = PoseEngine()
+            temp_view = Renderer()
+
+            # Затем камеру
+            temp_cap = cv2.VideoCapture(0)
+            temp_cap.set(cv2.CAP_PROP_FRAME_WIDTH, Config.CAM_WIDTH)
+            temp_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Config.CAM_HEIGHT)
+
+            # Передаем готовые объекты в основной класс
+            self.pose_eng = temp_pose_eng
+            self.view = temp_view
+            self.cap = temp_cap
+            self.cv_initialized = True
+        except Exception as e:
+            print(f"Ошибка при фоновой загрузке: {e}")
 
     def update_timer(self):
         current_time = pygame.time.get_ticks()
 
-        # 1. Логотип: изменено на 2000 мс (2 секунды)
+        # 1. Логотип (2 секунды)
         if self.game.state == "SPLASH":
             if current_time - self.start_ticks >= 2000:
                 self.game.state = "LOADING"
             return
 
-        # 2. Состояние загрузки (с анимированным GIF)
+        # 2. Загрузка (анимированный GIF)
         if self.game.state == "LOADING":
-            # Вызываем отрисовку LOADING, чтобы GIF анимировался в цикле run
-            # Но саму инициализацию делаем после отрисовки
-            if self.pose_eng is None:
-                self.init_cv()  # Это вызовет паузу, на экране застынет последний кадр GIF
+            # Если поток еще не запущен — запускаем
+            if self.cv_loading_thread is None:
+                self.cv_loading_thread = threading.Thread(target=self.init_cv_task)
+                self.cv_loading_thread.start()
+
+            # Если поток закончил работу
+            if self.cv_initialized:
                 self.game.state = "PLAYING"
                 self.game_start_ticks = pygame.time.get_ticks()
                 self.last_pose_change = pygame.time.get_ticks()
             return
 
-        # 3. Игра
+        # 3. Игровой процесс (PLAYING)
         if self.game.state != "PLAYING": return
 
         elapsed_sec = (current_time - self.game_start_ticks) // 1000
@@ -87,6 +108,7 @@ class Application:
             self.process_events()
             self.update_timer()
 
+            # В состояниях SPLASH и LOADING просто рисуем и крутим цикл
             if self.game.state == "SPLASH":
                 self.ui_renderer.draw_splash()
                 pygame.display.flip()
@@ -94,12 +116,16 @@ class Application:
                 continue
 
             if self.game.state == "LOADING":
-                self.ui_renderer.draw_loading()
+                self.ui_renderer.draw_loading()  # Здесь GIF будет проигрываться плавно
                 pygame.display.flip()
                 self.clock.tick(Config.FPS)
                 continue
 
-            # Основной цикл
+            # Если всё еще не инициализировано (на всякий случай)
+            if not self.cv_initialized:
+                continue
+
+            # Основной цикл игры с камерой
             ret, frame = self.cap.read()
             if not ret: break
             frame = cv2.flip(frame, 1)
