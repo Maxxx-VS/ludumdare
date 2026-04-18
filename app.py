@@ -5,8 +5,6 @@ from game_logic import GameEngine
 from ui import UIRenderer
 
 
-# PoseEngine и Renderer импортируем только при необходимости, чтобы ускорить старт окна
-
 class Application:
     def __init__(self):
         pygame.init()
@@ -43,28 +41,24 @@ class Application:
     def update_timer(self):
         current_time = pygame.time.get_ticks()
 
-        # 1. Логика логотипа (3 секунды)
+        # 1. Логотип: изменено на 2000 мс (2 секунды)
         if self.game.state == "SPLASH":
-            if current_time - self.start_ticks >= 3000:
+            if current_time - self.start_ticks >= 2000:
                 self.game.state = "LOADING"
             return
 
-        # 2. Логика загрузки CV
+        # 2. Состояние загрузки (с анимированным GIF)
         if self.game.state == "LOADING":
-            # Сначала отрисуем кадр загрузки, чтобы он появился на экране
-            self.ui_renderer.draw(None, self.game, "UNKNOWN", False)
-            pygame.display.flip()
-
-            # Тяжелая операция инициализации
-            self.init_cv()
-
-            # Переходим в игру
-            self.game.state = "PLAYING"
-            self.game_start_ticks = pygame.time.get_ticks()
-            self.last_pose_change = pygame.time.get_ticks()
+            # Вызываем отрисовку LOADING, чтобы GIF анимировался в цикле run
+            # Но саму инициализацию делаем после отрисовки
+            if self.pose_eng is None:
+                self.init_cv()  # Это вызовет паузу, на экране застынет последний кадр GIF
+                self.game.state = "PLAYING"
+                self.game_start_ticks = pygame.time.get_ticks()
+                self.last_pose_change = pygame.time.get_ticks()
             return
 
-        # 3. Игровая логика
+        # 3. Игра
         if self.game.state != "PLAYING": return
 
         elapsed_sec = (current_time - self.game_start_ticks) // 1000
@@ -93,16 +87,19 @@ class Application:
             self.process_events()
             self.update_timer()
 
-            # Если мы всё еще в режиме заставок — пропускаем обработку камеры
-            if self.game.state in ["SPLASH", "LOADING"]:
-                # Отрисовка происходит внутри update_timer для LOADING или здесь для SPLASH
-                if self.game.state == "SPLASH":
-                    self.ui_renderer.draw(None, self.game, "UNKNOWN", False)
-                    pygame.display.flip()
+            if self.game.state == "SPLASH":
+                self.ui_renderer.draw_splash()
+                pygame.display.flip()
                 self.clock.tick(Config.FPS)
                 continue
 
-            # Основной цикл игры
+            if self.game.state == "LOADING":
+                self.ui_renderer.draw_loading()
+                pygame.display.flip()
+                self.clock.tick(Config.FPS)
+                continue
+
+            # Основной цикл
             ret, frame = self.cap.read()
             if not ret: break
             frame = cv2.flip(frame, 1)
