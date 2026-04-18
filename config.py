@@ -8,9 +8,18 @@ class Config:
     CONFIDENCE = 0.6
     FPS = 30
 
-    # ПУТИ К ГРАФИКЕ (теперь всё в ./graphics/)
+    # ПУТИ К ГРАФИКЕ
     LOGO_PATH = "./graphics/logo.png"
     LOADING_GIF_PATH = "./graphics/loading.gif"
+
+    # ПУТИ К ИЗОБРАЖЕНИЯМ ПОЗ
+    POSE_IMAGES = {
+        "T_POSE": "./graphics/t_pose.png",
+        "HANDS_UP": "./graphics/hands_up.png",
+        "ONE_HAND_UP": "./graphics/one_hand_up.png",
+        "ONE_HAND_SIDE": "./graphics/one_hand_side.png",
+        "STAR": "./graphics/star.png"
+    }
 
     POINTS = {
         'L_SHOULDER': 5, 'R_SHOULDER': 6, 'L_ELBOW': 7, 'R_ELBOW': 8,
@@ -34,24 +43,23 @@ class Config:
         "UNKNOWN": "---"
     }
 
-    # --- НАСТРОЙКИ УРОВНЕЙ ---
     LEVELS = [
         {
-            "duration": 30,           # Длительность уровня (секунды)
-            "pose_pool": ["T_POSE", "HANDS_UP"], # Простые позы для начала
-            "pose_time_limit": 4000,  # Даем больше времени на смену позы (мс)
-            "lives": 5                # Стартовые жизни
+            "duration": 30,
+            "pose_pool": ["T_POSE", "HANDS_UP"],
+            "pose_time_limit": 4000,
+            "lives": 5
         },
         {
             "duration": 40,
             "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP"],
-            "pose_time_limit": 3000,  # Ускоряем
-            "lives": -1               # -1 означает сохранить жизни с прошлого уровня
+            "pose_time_limit": 3000,
+            "lives": -1
         },
         {
             "duration": 45,
-            "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"], # Все позы
-            "pose_time_limit": 2000,  # Очень быстро!
+            "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+            "pose_time_limit": 2000,
             "lives": -1
         }
     ]
