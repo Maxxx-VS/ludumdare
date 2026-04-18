@@ -33,3 +33,25 @@ class Config:
         "STAR": "Звезда",
         "UNKNOWN": "---"
     }
+
+    # --- НАСТРОЙКИ УРОВНЕЙ ---
+    LEVELS = [
+        {
+            "duration": 30,           # Длительность уровня (секунды)
+            "pose_pool": ["T_POSE", "HANDS_UP"], # Простые позы для начала
+            "pose_time_limit": 4000,  # Даем больше времени на смену позы (мс)
+            "lives": 5                # Стартовые жизни
+        },
+        {
+            "duration": 40,
+            "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP"],
+            "pose_time_limit": 3000,  # Ускоряем
+            "lives": -1               # -1 означает сохранить жизни с прошлого уровня
+        },
+        {
+            "duration": 45,
+            "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"], # Все позы
+            "pose_time_limit": 2000,  # Очень быстро!
+            "lives": -1
+        }
+    ]

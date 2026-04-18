@@ -10,6 +10,7 @@ class UIRenderer:
         self.screen = screen
         self.font = pygame.font.Font(None, 42)
         self.font_small = pygame.font.Font(None, 36)
+        self.font_large = pygame.font.Font(None, 72)  # Добавлен крупный шрифт для уровней
 
         self.scale_factor = Config.WIN_HEIGHT / Config.CAM_HEIGHT
         self.scaled_width = int(Config.CAM_WIDTH * self.scale_factor)
@@ -17,12 +18,9 @@ class UIRenderer:
         self.right_panel_start = self.scaled_width
         self.panel_margin = 30
 
-        # Загрузка логотипа
         self.logo_img = self._load_asset(Config.LOGO_PATH)
-
-        # Загрузка GIF как списка кадров
         self.loading_frames = self._load_gif(Config.LOADING_GIF_PATH)
-        self.gif_fps = 15  # Скорость анимации (кадров в секунду)
+        self.gif_fps = 15
 
     def _load_asset(self, path):
         if os.path.exists(path):
@@ -33,15 +31,11 @@ class UIRenderer:
         return None
 
     def _load_gif(self, path):
-        """Разбивает GIF на отдельные кадры Pygame."""
-        if not os.path.exists(path):
-            return []
-
+        if not os.path.exists(path): return []
         frames = []
         try:
             pil_image = Image.open(path)
             for frame in ImageSequence.Iterator(pil_image):
-                # Конвертируем кадр PIL в Pygame Surface
                 frame_rgba = frame.convert('RGBA')
                 data = frame_rgba.tobytes()
                 size = frame_rgba.size
@@ -52,7 +46,6 @@ class UIRenderer:
         return frames
 
     def draw_splash(self):
-        """Отрисовка статичного логотипа по центру."""
         self.screen.fill((0, 0, 0))
         if self.logo_img:
             rect = self.logo_img.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2))
@@ -61,30 +54,42 @@ class UIRenderer:
             self._draw_error("ЛОГОТИП НЕ НАЙДЕН")
 
     def draw_loading(self):
-        """Отрисовка анимированного GIF по центру."""
         self.screen.fill((0, 0, 0))
         if self.loading_frames:
-            # Вычисляем текущий кадр на основе времени
             current_time = pygame.time.get_ticks()
             frame_index = (current_time // (1000 // self.gif_fps)) % len(self.loading_frames)
             current_frame = self.loading_frames[frame_index]
-
             rect = current_frame.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2))
             self.screen.blit(current_frame, rect)
         else:
             self._draw_error("GIF ЗАГРУЗКИ НЕ НАЙДЕН")
+
+    def _draw_level_transition(self, game):
+        """Заставка между уровнями"""
+        self.screen.fill((15, 15, 20))
+        level_num = game.current_level_index + 1
+        dur = game.current_level_data["duration"]
+
+        text_lvl = self.font_large.render(f"УРОВЕНЬ {level_num}", True, (255, 215, 0))
+        self.screen.blit(text_lvl, text_lvl.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 50)))
+
+        self._draw_text(f"Длительность: {dur} сек", (200, 200, 200),
+                        center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 20), is_small=True)
+        self._draw_text("Приготовьтесь!", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 80))
 
     def _draw_error(self, message):
         err_text = self.font.render(message, True, (255, 0, 0))
         self.screen.blit(err_text, err_text.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2)))
 
     def draw(self, frame, game, cur_pose, is_correct):
-        # Если игра в спец. состояниях, используем выделенные методы
         if game.state == "SPLASH":
             self.draw_splash()
             return
         if game.state == "LOADING":
             self.draw_loading()
+            return
+        if game.state == "LEVEL_TRANSITION":
+            self._draw_level_transition(game)
             return
 
         # --- Основной интерфейс игры ---
@@ -118,6 +123,10 @@ class UIRenderer:
         self._draw_text(status_text, status_color,
                         center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 180))
 
+        # Отображение текущего уровня в панели
+        self._draw_text(f"Уровень: {game.current_level_index + 1} / {len(Config.LEVELS)}", (100, 200, 255),
+                        center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 260))
+
         bottom_y = Config.WIN_HEIGHT - self.panel_margin
         self._draw_text("R / SPACE — рестарт", (180, 180, 180), is_small=True,
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y))
@@ -137,10 +146,10 @@ class UIRenderer:
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 150))
 
         if game.state in ["WIN", "LOSE"]:
-            overlay = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA);
+            overlay = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 200))
             self.screen.blit(overlay, (panel_rect.x, panel_rect.y))
-            msg = "ПОБЕДА!" if game.state == "WIN" else "ИГРА ОКОНЧЕНА"
+            msg = "ПОБЕДА (Все уровни пройдены)!" if game.state == "WIN" else "ИГРА ОКОНЧЕНА"
             self._draw_text(msg, (255, 255, 255),
                             center=(self.right_panel_start + panel_rect.width // 2, Config.WIN_HEIGHT // 2))
 
