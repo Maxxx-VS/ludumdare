@@ -34,7 +34,7 @@ def main():
     scaled_height = Config.WIN_HEIGHT
 
     # Центрируем по горизонтали (черные полосы по бокам, если экран 16:9, а камера 4:3)
-    pos_x = (Config.WIN_WIDTH - scaled_width) // 2
+    pos_x = 0
     pos_y = 0
     # ------------------------------
 
