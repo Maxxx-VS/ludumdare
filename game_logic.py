@@ -15,7 +15,7 @@ class GameEngine:
         """Полный сброс: обнуление очков, новая поза и сброс жизней/времени."""
         self.score = 0
         self.completed = False
-        self.lives = 10         # НОВОЕ
+        self.lives = 5         # НОВОЕ
         self.time_left = 30     # НОВОЕ
         self.state = "PLAYING"  # НОВОЕ
         self.target_pose = random.choice(Config.POSES)
