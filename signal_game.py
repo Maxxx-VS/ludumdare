@@ -33,7 +33,6 @@ LEFT_HIP, RIGHT_HIP = 11, 12
 LEFT_KNEE, RIGHT_KNEE = 13, 14
 LEFT_ANKLE, RIGHT_ANKLE = 15, 16
 
-
 def angle_between_points(a, b, c):
     """Вычисляет угол ABC в градусах."""
     a = np.array(a)
@@ -44,7 +43,6 @@ def angle_between_points(a, b, c):
     cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc) + 1e-6)
     angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
     return np.degrees(angle)
-
 
 class PoseClassifier:
     """Классификатор поз на основе углов и относительных положений."""
@@ -101,7 +99,6 @@ class PoseClassifier:
 
         return "UNKNOWN"
 
-
 # ---------- ИГРОВЫЕ НАСТРОЙКИ ----------
 POSE_LIST = ["T_POSE", "HANDS_UP", "SQUAT", "LEFT_LEAN", "RIGHT_LEAN", "CROSS_ARMS"]
 POSE_NAMES_RU = {
@@ -112,7 +109,6 @@ POSE_NAMES_RU = {
     "RIGHT_LEAN": "Наклон вправо",
     "CROSS_ARMS": "Руки крестом"
 }
-
 
 class SignalBlock:
     def __init__(self, pose_type, x, y, speed):
@@ -135,7 +131,6 @@ class SignalBlock:
 
     def is_in_capture_zone(self, z_start, z_end):
         return (self.y < z_end and (self.y + self.height) > z_start)
-
 
 class Game:
     def __init__(self):
@@ -202,12 +197,11 @@ class Game:
 
         cv2.putText(frame, f"SCORE: {self.score}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         cv2.putText(frame, f"COMBO: x{self.combo}", (200, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-
+        
         # Сигнал
         bar_x, bar_y, bar_w, bar_h = w - 240, 20, 200, 20
         cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h), (0, 255, 0), 1)
-        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + int(bar_w * self.signal_strength / 100), bar_y + bar_h),
-                      (0, 255, 0), -1)
+        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + int(bar_w * self.signal_strength / 100), bar_y + bar_h), (0, 255, 0), -1)
 
         cv2.rectangle(frame, (0, self.capture_zone_y_start), (w, self.capture_zone_y_end), (0, 255, 255), 2)
         p_name = POSE_NAMES_RU.get(self.current_pose, "---")
@@ -215,13 +209,10 @@ class Game:
 
         for b in self.blocks: b.draw(frame)
         if self.state == "MENU":
-            cv2.putText(frame, "PRESS SPACE TO START", (w // 2 - 140, h // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.8,
-                        (255, 255, 255), 2)
+            cv2.putText(frame, "PRESS SPACE TO START", (w//2-140, h//2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
         elif self.state == "GAME_OVER":
-            cv2.putText(frame, "GAME OVER", (w // 2 - 100, h // 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
-            cv2.putText(frame, "PRESS R TO RESTART", (w // 2 - 120, h // 2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
-                        (255, 255, 255), 1)
-
+            cv2.putText(frame, "GAME OVER", (w//2-100, h//2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,0,255), 3)
+            cv2.putText(frame, "PRESS R TO RESTART", (w//2-120, h//2+40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 1)
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -229,8 +220,7 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
 
     game = Game()
-    skeleton_links = [(5, 6), (5, 7), (7, 9), (6, 8), (8, 10), (5, 11), (6, 12), (11, 12), (11, 13), (13, 15), (12, 14),
-                      (14, 16)]
+    skeleton_links = [(5,6), (5,7), (7,9), (6,8), (8,10), (5,11), (6,12), (11,12), (11,13), (13,15), (12,14), (14,16)]
 
     while True:
         ret, frame = cap.read()
@@ -249,7 +239,7 @@ def main():
                     pt1, pt2 = keypoints_data[start_idx], keypoints_data[end_idx]
                     if pt1[2] > 0.5 and pt2[2] > 0.5:
                         cv2.line(frame, (int(pt1[0]), int(pt1[1])), (int(pt2[0]), int(pt2[1])), (0, 255, 0), 2)
-                for i in range(5, 17):  # Только тело
+                for i in range(5, 17): # Только тело
                     if keypoints_data[i][2] > 0.5:
                         cv2.circle(frame, (int(keypoints_data[i][0]), int(keypoints_data[i][1])), 4, (0, 0, 255), -1)
 
@@ -258,16 +248,12 @@ def main():
 
         cv2.imshow("SIGNAL FLOW", frame)
         key = cv2.waitKey(1) & 0xFF
-        if key == 27:
-            break
-        elif key == ord(' '):
-            game.reset()
-        elif key == ord('r'):
-            game.reset()
+        if key == 27: break
+        elif key == ord(' '): game.reset()
+        elif key == ord('r'): game.reset()
 
     cap.release()
     cv2.destroyAllWindows()
-
 
 if __name__ == "__main__":
     main()
