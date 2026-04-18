@@ -17,22 +17,20 @@ class Config:
         (6, 12), (11, 12), (11, 13), (13, 15), (12, 14), (14, 16)
     ]
 
+    # Только актуальные позы
     POSES = [
-        "T_POSE", "HANDS_UP", "SQUAT", "LEFT_LEAN", "RIGHT_LEAN",
-        "CROSS_ARMS", "HANDS_ON_HIPS", "HANDS_BEHIND_HEAD",
-        "ONE_HAND_UP", "THINKER_POSE"
+        "T_POSE",
+        "HANDS_UP",
+        "ONE_HAND_UP",
+        "ONE_HAND_SIDE",
+        "STAR"
     ]
 
     POSE_NAMES_RU = {
         "T_POSE": "Руки в стороны",
         "HANDS_UP": "Руки вверх",
-        "SQUAT": "Присед",
-        "LEFT_LEAN": "Наклон влево",
-        "RIGHT_LEAN": "Наклон вправо",
-        "CROSS_ARMS": "Руки крестом",
-        "HANDS_ON_HIPS": "Руки в бока",
-        "HANDS_BEHIND_HEAD": "Руки за голову",
         "ONE_HAND_UP": "Одна рука вверх",
-        "THINKER_POSE": "Мыслитель",
+        "ONE_HAND_SIDE": "Одна рука в сторону",
+        "STAR": "Звезда",
         "UNKNOWN": "---"
     }
