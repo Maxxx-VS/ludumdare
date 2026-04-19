@@ -5,6 +5,7 @@ from config import Config
 from game_logic import GameEngine
 from ui import UIRenderer
 
+
 class Application:
     def __init__(self):
         pygame.init()
@@ -32,6 +33,11 @@ class Application:
         self.cv_loading_thread = None
         self.cv_initialized = False
 
+        # Настройки меню
+        self.menu_index = 0
+        self.menu_rects = []
+        self.back_rect = None
+
     def init_cv_task(self):
         try:
             from engine import PoseEngine
@@ -54,7 +60,7 @@ class Application:
 
         if self.game.state == "SPLASH":
             if current_time - self.start_ticks >= 2000:
-                self.game.state = "LOADING"
+                self.game.state = "MAIN_MENU"  # После логотипа переходим в меню
             return
 
         if self.game.state == "LOADING":
@@ -108,9 +114,21 @@ class Application:
             self.process_events()
             self.update_timer()
 
-            if self.game.state in ["SPLASH", "LOADING"]:
-                if self.game.state == "SPLASH": self.ui_renderer.draw_splash()
-                else: self.ui_renderer.draw_loading()
+            mouse_pos = pygame.mouse.get_pos()
+
+            # Отрисовка системных экранов, до инициализации CV
+            if self.game.state in ["SPLASH", "MAIN_MENU", "SETTINGS", "AUTHORS", "LOADING"]:
+                if self.game.state == "SPLASH":
+                    self.ui_renderer.draw_splash()
+                elif self.game.state == "MAIN_MENU":
+                    self.menu_rects = self.ui_renderer.draw_main_menu(self.menu_index, mouse_pos)
+                elif self.game.state == "SETTINGS":
+                    self.back_rect = self.ui_renderer.draw_settings(mouse_pos)
+                elif self.game.state == "AUTHORS":
+                    self.back_rect = self.ui_renderer.draw_authors(mouse_pos)
+                else:
+                    self.ui_renderer.draw_loading()
+
                 pygame.display.flip()
                 self.clock.tick(Config.FPS)
                 continue
@@ -125,7 +143,8 @@ class Application:
 
             if self.game.state == "PLAYING":
                 results = self.pose_eng.model(frame, imgsz=640, device=0, verbose=False, conf=Config.CONFIDENCE)
-                kpts = results[0].keypoints.data.cpu().numpy()[0] if results and len(results[0].keypoints.data) > 0 else None
+                kpts = results[0].keypoints.data.cpu().numpy()[0] if results and len(
+                    results[0].keypoints.data) > 0 else None
                 cur_pose = self.pose_eng.classify(kpts)
                 is_correct = self.game.update(cur_pose)
 
@@ -142,11 +161,55 @@ class Application:
         self.cleanup()
 
     def process_events(self):
+        mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 self.running = False
+
+            # --- Логика меню ---
+            if self.game.state == "MAIN_MENU":
+                # Обработка мыши
+                if event.type == pygame.MOUSEMOTION:
+                    for i, rect in enumerate(self.menu_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.menu_index = i
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    for i, rect in enumerate(self.menu_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.menu_index = i
+                            if self.menu_index == 0:
+                                self.game.state = "LOADING"
+                            elif self.menu_index == 1:
+                                self.game.state = "SETTINGS"
+                            elif self.menu_index == 2:
+                                self.game.state = "AUTHORS"
+                # Обработка клавиатуры (Стрелки + Enter)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        self.menu_index = (self.menu_index - 1) % 3
+                    elif event.key == pygame.K_DOWN:
+                        self.menu_index = (self.menu_index + 1) % 3
+                    elif event.key == pygame.K_RETURN:
+                        if self.menu_index == 0:
+                            self.game.state = "LOADING"
+                        elif self.menu_index == 1:
+                            self.game.state = "SETTINGS"
+                        elif self.menu_index == 2:
+                            self.game.state = "AUTHORS"
+
+            elif self.game.state in ["SETTINGS", "AUTHORS"]:
+                # Обработка кнопки "Back"
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if self.back_rect and self.back_rect.collidepoint(mouse_pos):
+                        self.game.state = "MAIN_MENU"
+                elif event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_BACKSPACE,
+                                                                    pygame.K_ESCAPE]:
+                    self.game.state = "MAIN_MENU"
+
+            # --- Логика внутри игры ---
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
-                if self.game.state not in ["SPLASH", "LOADING"]:
+                # Рестарт во время игры, но блокируем его, если мы в меню
+                if self.game.state not in ["SPLASH", "LOADING", "MAIN_MENU", "SETTINGS", "AUTHORS"]:
                     self.game.full_reset()
                     self.transition_start_ticks = pygame.time.get_ticks()
 

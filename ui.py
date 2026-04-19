@@ -68,6 +68,53 @@ class UIRenderer:
             rect = self.logo_img.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2))
             self.screen.blit(self.logo_img, rect)
 
+    def draw_main_menu(self, selected_index, mouse_pos):
+        self.screen.fill((15, 15, 20))
+        self._draw_text("SIGNAL FLOW", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
+                        is_large=True)
+
+        rects = []
+        options = ["New Game", "Settings", "Authors"]
+        for i, opt in enumerate(options):
+            color = (0, 255, 0) if i == selected_index else (200, 200, 200)
+            center_y = Config.WIN_HEIGHT // 2 + i * 80
+
+            # Рендер текста и получение зоны для клика
+            rect = self._draw_text(opt, color, center=(Config.WIN_WIDTH // 2, center_y))
+
+            # Подсветка при наведении мыши
+            if rect.collidepoint(mouse_pos):
+                rect = self._draw_text(opt, (255, 255, 0), center=(Config.WIN_WIDTH // 2, center_y))
+
+            rects.append(rect)
+        return rects
+
+    def draw_settings(self, mouse_pos):
+        self.screen.fill((15, 15, 20))
+        self._draw_text("SETTINGS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
+                        is_large=True)
+        self._draw_text("Sound: ON", (200, 200, 200), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2))
+
+        back_rect = self._draw_text("Back", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
+        if back_rect.collidepoint(mouse_pos):
+            back_rect = self._draw_text("Back", (255, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
+
+        return back_rect
+
+    def draw_authors(self, mouse_pos):
+        self.screen.fill((15, 15, 20))
+        self._draw_text("AUTHORS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4), is_large=True)
+
+        for i, author in enumerate(Config.AUTHORS):
+            self._draw_text(author, (200, 200, 200),
+                            center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 50 + i * 50))
+
+        back_rect = self._draw_text("Back", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
+        if back_rect.collidepoint(mouse_pos):
+            back_rect = self._draw_text("Back", (255, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
+
+        return back_rect
+
     def draw_loading(self):
         self.screen.fill((0, 0, 0))
         if self.loading_frames:
@@ -164,10 +211,17 @@ class UIRenderer:
             self._draw_text(msg, (255, 255, 255),
                             center=(self.right_panel_start + panel_rect.width // 2, Config.WIN_HEIGHT // 2))
 
-    def _draw_text(self, text, color, center=None, bottomright=None, is_small=False):
-        font = self.font_small if is_small else self.font
+    def _draw_text(self, text, color, center=None, bottomright=None, is_small=False, is_large=False):
+        if is_large:
+            font = self.font_large
+        elif is_small:
+            font = self.font_small
+        else:
+            font = self.font
+
         surf = font.render(str(text), True, color)
         rect = surf.get_rect()
         if center: rect.center = center
         if bottomright: rect.bottomright = bottomright
         self.screen.blit(surf, rect)
+        return rect

@@ -10,7 +10,8 @@ class GameEngine:
     def full_reset(self):
         self.score = 0
         self.current_level_index = 0
-        if self.state not in ["SPLASH", "LOADING"]:
+        # Не переключать стейт, если мы находимся в системных экранах
+        if self.state not in ["SPLASH", "LOADING", "MAIN_MENU", "SETTINGS", "AUTHORS"]:
             self.state = "LEVEL_TRANSITION"
         self.load_level(0)
 

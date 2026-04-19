@@ -43,6 +43,13 @@ class Config:
         "UNKNOWN": "---"
     }
 
+    AUTHORS = [
+        "CV, Code - Maksim Vysochanskiy",
+        "Code - Petr Bychkov",
+        "Testing - Artem Vysochanskiy",
+        "Design - Yaroslav Kutsypin"
+    ]
+
     LEVELS = [
         {
             "duration": 30,
