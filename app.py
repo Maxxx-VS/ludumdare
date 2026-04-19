@@ -91,6 +91,20 @@ class Application:
                 self.last_pose_change = current_time
             return
 
+        if self.game.is_paused:
+            if current_time - self.success_time >= 1000:
+                # Если была ошибка, вычитаем жизнь ПОСЛЕ завершения паузы
+                if self.game.last_result_type == "ERROR":
+                    self.game.lives -= 1
+                    if self.game.lives <= 0:
+                        self.game.state = "LOSE"
+                        self.game.stop_music()
+
+                if self.game.state == "PLAYING":
+                    self.game.next_pose()
+                    self.last_pose_change = current_time
+            return
+
         if self.game.state != "PLAYING": return
 
         elapsed_sec = (current_time - self.level_start_ticks) // 1000
@@ -118,6 +132,9 @@ class Application:
             return
 
         if current_time - self.last_pose_change >= pose_limit:
+            self.game.is_paused = True
+            self.game.last_result_type = "ERROR"
+            self.success_time = current_time
             self.game.lives -= 1
             if self.game.lives <= 0:
                 self.game.state = "LOSE"

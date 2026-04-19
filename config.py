@@ -15,6 +15,10 @@ class Config:
     LOGO_PATH = "./graphics/logo.png"
     LOADING_GIF_PATH = "./graphics/loading.gif"
 
+    # Пути к фидбек-изображениям
+    OK_IMAGE_PATH = "./graphics/okey.png"
+    ERROR_GIF_PATH = "./graphics/error.gif"
+
     # ПУТИ К МУЗЫКЕ
     MUSIC_PATHS = {
         0: "./music/difficulty1.mp3",
