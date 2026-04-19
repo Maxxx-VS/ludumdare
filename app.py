@@ -69,6 +69,7 @@ class Application:
         self.level_start_ticks = 0
         self.transition_start_ticks = 0
         self.success_time = 0
+        self.end_time_ticks = 0  # <--- ДОБАВИТЬ ЭТУ СТРОКУ
         self.running = True
 
         self.cv_loading_thread = None
@@ -98,6 +99,13 @@ class Application:
 
     def update_timer(self):
         current_time = pygame.time.get_ticks()
+
+        # Если игра окончена, ждем 3 секунды и выходим в главное меню
+        if self.game.state in ["WIN", "LOSE"]:
+            if current_time - self.end_time_ticks >= 3000:
+                self.game.state = "MAIN_MENU"
+                self.menu_index = 0
+            return
 
         if self.game.state == "SPLASH":
             if current_time - self.start_ticks >= 2000:
@@ -132,6 +140,7 @@ class Application:
             if next_lvl >= len(Config.DIFFICULTIES[self.game.difficulty]):
                 self.game.state = "WIN"
                 self.game.stop_music()
+                self.end_time_ticks = current_time  # <--- ДОБАВИТЬ ЭТУ СТРОКУ
                 if self.game.difficulty == "NORMAL":
                     self.game.hard_unlocked = True
             else:
@@ -153,6 +162,7 @@ class Application:
             if self.game.lives <= 0:
                 self.game.state = "LOSE"
                 self.game.stop_music()
+                self.end_time_ticks = current_time  # <--- ДОБАВИТЬ ЭТУ СТРОКУ
             if self.game.state == "PLAYING":
                 self.game.next_pose()
                 self.last_pose_change = current_time
