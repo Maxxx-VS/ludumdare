@@ -3,6 +3,7 @@ import cv2
 import os
 from PIL import Image, ImageSequence
 from config import Config
+from distractor import WalkerDistractor
 
 
 class UIRenderer:
@@ -59,6 +60,10 @@ class UIRenderer:
                     new_size = (int(rect.width * scale), int(rect.height * scale))
                     img = pygame.transform.smoothscale(img, new_size)
                     self.pose_images[difficulty][pose_key] = img
+
+        # Инициализация дистрактора
+        self.distractor = WalkerDistractor()
+        self.last_game_state = "SPLASH"
 
     def _load_asset(self, path):
         if os.path.exists(path):
@@ -140,34 +145,27 @@ class UIRenderer:
         self._draw_text("SETTINGS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
                         is_large=True)
 
-        # Отрисовка текста Громкость
         vol_label_rect = self._draw_text("Music Volume:", (200, 200, 200),
                                          center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 40))
 
-        # Параметры ползунка
         slider_width = 400
         slider_height = 10
         slider_x = (Config.WIN_WIDTH - slider_width) // 2
         slider_y = Config.WIN_HEIGHT // 2 + 10
         slider_rect = pygame.Rect(slider_x, slider_y, slider_width, slider_height)
 
-        # Отрисовка дорожки ползунка
         pygame.draw.rect(self.screen, (100, 100, 100), slider_rect, border_radius=5)
 
-        # Отрисовка заполненной части
         filled_rect = pygame.Rect(slider_x, slider_y, int(slider_width * current_volume), slider_height)
         pygame.draw.rect(self.screen, (0, 255, 0), filled_rect, border_radius=5)
 
-        # Отрисовка "ручки" ползунка
         handle_x = slider_x + int(slider_width * current_volume)
         pygame.draw.circle(self.screen, (255, 255, 255), (handle_x, slider_y + slider_height // 2), 15)
 
-        # Текст со значением громкости справа
         vol_percent = int(current_volume * 100)
         self._draw_text(f"{vol_percent}%", (255, 255, 255),
                         center=(slider_x + slider_width + 60, slider_y + slider_height // 2))
 
-        # Кнопка Назад
         back_rect = self._draw_text("Back", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
         if back_rect.collidepoint(mouse_pos):
             back_rect = self._draw_text("Back", (255, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
@@ -207,7 +205,6 @@ class UIRenderer:
                         center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 20), is_small=True)
         self._draw_text("Приготовьтесь!", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 80))
 
-    # НОВЫЙ МЕТОД ДЛЯ ФИНАЛЬНЫХ ЭКРАНОВ
     def draw_end_screen(self, state):
         self.screen.fill((0, 0, 0))
         if state == "WIN" and self.win_img:
@@ -215,12 +212,18 @@ class UIRenderer:
         elif state == "LOSE" and self.lose_img:
             self.screen.blit(self.lose_img, (0, 0))
         else:
-            # Fallback (если картинки не найдены)
             msg = "ПОБЕДА!" if state == "WIN" else "ИГРА ОКОНЧЕНА"
             self._draw_text(msg, (255, 255, 255),
                             center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2), is_large=True)
 
     def draw(self, frame, game, cur_pose, is_correct):
+        current_time = pygame.time.get_ticks()
+
+        # Сброс таймера дистрактора при входе в PLAYING стейт
+        if self.last_game_state != "PLAYING" and game.state == "PLAYING":
+            self.distractor.reset(current_time)
+        self.last_game_state = game.state
+
         if game.state == "SPLASH":
             self.draw_splash()
             return
@@ -245,13 +248,11 @@ class UIRenderer:
         self.screen.blit(s, (panel_rect.x, panel_rect.y))
         pygame.draw.rect(self.screen, (255, 255, 255), panel_rect, 2)
 
-        # Выбор картинки: пауза (фидбек) или игра (целевая поза)
         res_img = None
         if game.is_paused:
             if game.last_result_type == "SUCCESS":
                 res_img = self.ok_img
             elif game.last_result_type == "ERROR" and self.error_frames:
-                current_time = pygame.time.get_ticks()
                 frame_idx = (current_time // (1000 // self.gif_fps)) % len(self.error_frames)
                 res_img = self.error_frames[frame_idx]
         else:
@@ -261,8 +262,14 @@ class UIRenderer:
             img_rect = res_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
                                                 self.panel_margin + res_img.get_height() // 2))
             self.screen.blit(res_img, img_rect)
+
+            # --- ИНТЕГРАЦИЯ ДИСТРАКТОРА ---
+            if game.state == "PLAYING":
+                self.distractor.update(current_time, img_rect, game.is_paused)
+                if not game.is_paused:
+                    self.distractor.draw(self.screen, current_time)
+
         elif not game.is_paused:
-            # Fallback, если картинка не найдена
             target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
             self._draw_text(target_text, (255, 255, 0),
                             center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 50))

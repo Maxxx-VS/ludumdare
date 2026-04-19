@@ -12,6 +12,10 @@ class Config:
     # ГРОМКОСТЬ ПО УМОЛЧАНИЮ
     DEFAULT_VOLUME = 0.5
 
+    # НАСТРОЙКИ ДИСТРАКТОРА
+    DISTRACT_PHASE = 5000  # Интервал появления (в миллисекундах)
+    WALKER_GIF_PATH = "./graphics/walker.gif"
+
     # ПУТИ К ГРАФИКЕ
     LOGO_PATH = "./graphics/logo.png"
     LOADING_GIF_PATH = "./graphics/loading.gif"
@@ -47,10 +51,10 @@ class Config:
         },
         "HARD": {
             "T_POSE": "./graphics/crab_t_pose.png",
-            "HANDS_UP": "./graphics/crab_hands_up.png",
-            "ONE_HAND_UP": "./graphics/crab_one_hand_up.png",
-            "ONE_HAND_SIDE": "./graphics/crab_one_hand_side.png",
-            "STAR": "./graphics/crab_star.png"
+            "HANDS_UP": "./crab_hands_up.png",
+            "ONE_HAND_UP": "./crab_one_hand_up.png",
+            "ONE_HAND_SIDE": "./crab_one_hand_side.png",
+            "STAR": "./crab_star.png"
         }
     }
 
@@ -77,10 +81,10 @@ class Config:
     }
 
     AUTHORS = [
+        "Testing - Artem Vysochanskiy",
+        "Design - Yaroslav Kutsypin",
         "CV, Code - Maksim Vysochanskiy",
         "Code - Petr Bychkov",
-        "Testing - Artem Vysochanskiy",
-        "Design - Yaroslav Kutsypin"
     ]
 
     # НАСТРОЙКИ СЛОЖНОСТЕЙ
