@@ -9,6 +9,7 @@ class GameEngine:
         self.state = "SPLASH"
         self.difficulty = "EASY"
         self.hard_unlocked = False
+        self.volume = Config.DEFAULT_VOLUME
         self.full_reset()
 
     def play_music(self, index):
@@ -20,9 +21,16 @@ class GameEngine:
         if track_path:
             try:
                 pygame.mixer.music.load(track_path)
+                pygame.mixer.music.set_volume(self.volume)
                 pygame.mixer.music.play(-1)  # Цикличное воспроизведение
             except Exception as e:
                 print(f"Ошибка воспроизведения музыки: {e}")
+
+    def set_volume(self, value):
+        """Устанавливает громкость музыки (от 0.0 до 1.0)."""
+        self.volume = max(0.0, min(1.0, value))
+        if pygame.mixer.get_init():
+            pygame.mixer.music.set_volume(self.volume)
 
     def stop_music(self):
         """Останавливает текущую музыку."""
@@ -54,7 +62,6 @@ class GameEngine:
         if l_lives != -1: self.lives = l_lives
 
         # --- ЗАЩИТА АВТОЗАПУСКА ---
-        # Запуск музыки разрешен только при непосредственном переходе между уровнями.
         if self.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS"]:
             self.play_music(index)
 

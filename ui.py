@@ -22,18 +22,14 @@ class UIRenderer:
         self.loading_frames = self._load_gif(Config.LOADING_GIF_PATH)
         self.gif_fps = 15
 
-        # Ширина боковой панели
         panel_width = Config.WIN_WIDTH - self.right_panel_start
-        # Отступ (слева и справа)
         img_display_width = panel_width - (self.panel_margin * 2)
 
-        # Загрузка картинок с масштабированием только под ширину панели
         self.pose_images = {}
         for pose_key, path in Config.POSE_IMAGES.items():
             img = self._load_asset(path)
             if img:
                 rect = img.get_rect()
-                # Масштабируем строго по ширине панели (сохраняя пропорции)
                 scale = img_display_width / rect.width
                 new_size = (int(rect.width * scale), int(rect.height * scale))
                 img = pygame.transform.smoothscale(img, new_size)
@@ -89,7 +85,8 @@ class UIRenderer:
 
     def draw_difficulty_menu(self, selected_index, mouse_pos, hard_unlocked):
         self.screen.fill((15, 15, 20))
-        self._draw_text("SELECT DIFFICULTY", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4), is_large=True)
+        self._draw_text("SELECT DIFFICULTY", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
+                        is_large=True)
 
         rects = []
         options = ["Easy", "Normal", "Hard", "Back"]
@@ -113,17 +110,44 @@ class UIRenderer:
             rects.append(rect)
         return rects
 
-    def draw_settings(self, mouse_pos):
+    def draw_settings(self, mouse_pos, current_volume):
         self.screen.fill((15, 15, 20))
         self._draw_text("SETTINGS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
                         is_large=True)
-        self._draw_text("Sound: ON", (200, 200, 200), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2))
 
+        # Отрисовка текста Громкость
+        vol_label_rect = self._draw_text("Music Volume:", (200, 200, 200),
+                                         center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 40))
+
+        # Параметры ползунка
+        slider_width = 400
+        slider_height = 10
+        slider_x = (Config.WIN_WIDTH - slider_width) // 2
+        slider_y = Config.WIN_HEIGHT // 2 + 10
+        slider_rect = pygame.Rect(slider_x, slider_y, slider_width, slider_height)
+
+        # Отрисовка дорожки ползунка
+        pygame.draw.rect(self.screen, (100, 100, 100), slider_rect, border_radius=5)
+
+        # Отрисовка заполненной части
+        filled_rect = pygame.Rect(slider_x, slider_y, int(slider_width * current_volume), slider_height)
+        pygame.draw.rect(self.screen, (0, 255, 0), filled_rect, border_radius=5)
+
+        # Отрисовка "ручки" ползунка
+        handle_x = slider_x + int(slider_width * current_volume)
+        pygame.draw.circle(self.screen, (255, 255, 255), (handle_x, slider_y + slider_height // 2), 15)
+
+        # Текст со значением громкости справа
+        vol_percent = int(current_volume * 100)
+        self._draw_text(f"{vol_percent}%", (255, 255, 255),
+                        center=(slider_x + slider_width + 60, slider_y + slider_height // 2))
+
+        # Кнопка Назад
         back_rect = self._draw_text("Back", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
         if back_rect.collidepoint(mouse_pos):
             back_rect = self._draw_text("Back", (255, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
 
-        return back_rect
+        return back_rect, slider_rect
 
     def draw_authors(self, mouse_pos):
         self.screen.fill((15, 15, 20))
@@ -169,7 +193,6 @@ class UIRenderer:
             self._draw_level_transition(game)
             return
 
-        # 1. Отрисовка кадра камеры
         if frame is not None:
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             surf = pygame.surfarray.make_surface(frame_rgb.swapaxes(0, 1))
@@ -177,7 +200,6 @@ class UIRenderer:
             self.screen.fill((10, 10, 10))
             self.screen.blit(scaled_surf, (0, 0))
 
-        # 2. Отрисовка боковой панели (фон)
         panel_rect = pygame.Rect(self.right_panel_start, 0, Config.WIN_WIDTH - self.right_panel_start,
                                  Config.WIN_HEIGHT)
         s = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA)
@@ -185,48 +207,37 @@ class UIRenderer:
         self.screen.blit(s, (panel_rect.x, panel_rect.y))
         pygame.draw.rect(self.screen, (255, 255, 255), panel_rect, 2)
 
-        # 3. ВЕРХНЯЯ ЧАСТЬ: Задание (Только крупная картинка)
         if not game.is_paused:
             target_img = self.pose_images.get(game.target_pose)
             if target_img:
-                # Центрируем по ширине панели, прижимаем к верхнему краю с отступом panel_margin
                 img_rect = target_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
                                                        self.panel_margin + target_img.get_height() // 2))
                 self.screen.blit(target_img, img_rect)
             else:
-                # Резервный текст, если картинка не загрузилась
                 target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
                 self._draw_text(target_text, (255, 255, 0),
                                 center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 50))
 
-        # 4. НИЖНЯЯ ЧАСТЬ: Статистика (всегда видна, нетронута)
         bottom_y = Config.WIN_HEIGHT - self.panel_margin
-
-        # Рестарт
         self._draw_text("R / SPACE — рестарт", (180, 180, 180), is_small=True,
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y))
 
-        # Текущая поза
         pose_name = Config.POSE_NAMES_RU.get(cur_pose, "---")
         self._draw_text(f"Текущая: {pose_name}", (0, 255, 0), is_small=True,
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 40))
 
-        # Жизни (шкала из 10 сегментов)
         rect_w, rect_h, gap = 20, 15, 5
         start_x = Config.WIN_WIDTH - self.panel_margin - (10 * rect_w + 9 * gap)
         for i in range(10):
             color = (0, 255, 0) if i < game.lives else (100, 100, 100)
             pygame.draw.rect(self.screen, color, (start_x + i * (rect_w + gap), bottom_y - 80, rect_w, rect_h))
 
-        # Таймер
         self._draw_text(f"Осталось: {game.time_left} сек", (255, 255, 255),
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 110))
 
-        # Счёт
         self._draw_text(f"Счёт: {game.score}", (255, 255, 255),
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 150))
 
-        # 5. Оверлей финала
         if game.state in ["WIN", "LOSE"]:
             overlay = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 200))

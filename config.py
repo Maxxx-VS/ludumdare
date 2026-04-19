@@ -8,6 +8,9 @@ class Config:
     CONFIDENCE = 0.6
     FPS = 30
 
+    # ГРОМКОСТЬ ПО УМОЛЧАНИЮ
+    DEFAULT_VOLUME = 0.5
+
     # ПУТИ К ГРАФИКЕ
     LOGO_PATH = "./graphics/logo.png"
     LOADING_GIF_PATH = "./graphics/loading.gif"
@@ -97,19 +100,19 @@ class Config:
             {
                 "duration": 40,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
-                "pose_time_limit": 2000,
+                "pose_time_limit": 1500,
                 "lives": 3
             },
             {
                 "duration": 50,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
-                "pose_time_limit": 1500,
+                "pose_time_limit": 1000,
                 "lives": -1
             },
             {
                 "duration": 50,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
-                "pose_time_limit": 1000,
+                "pose_time_limit": 500,
                 "lives": -1 # Жизни переносятся
             }
         ]
