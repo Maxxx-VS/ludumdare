@@ -15,22 +15,54 @@ class PoseEngine:
             def get_xy(idx):
                 return kpts[idx][0], kpts[idx][1]
 
+            # Верхняя часть тела
             lw_x, lw_y = get_xy(9);
             rw_x, rw_y = get_xy(10)
             ls_x, ls_y = get_xy(5);
             rs_x, rs_y = get_xy(6)
             le_x, le_y = get_xy(7);
             re_x, re_y = get_xy(8)
+
+            # Нижняя часть тела
+            lh_x, lh_y = get_xy(11);
+            rh_x, rh_y = get_xy(12)
+            lk_x, lk_y = get_xy(13);
+            rk_x, rk_y = get_xy(14)
             la_x, la_y = get_xy(15);
             ra_x, ra_y = get_xy(16)
 
             shoulder_width = max(1, abs(rs_x - ls_x))
 
-            # Углы и вытяжение рук
+            # --- Углы и вытяжение рук ---
             left_arm_straight = self._angle_between(ls_x, ls_y, le_x, le_y, lw_x, lw_y) > 150
             right_arm_straight = self._angle_between(rs_x, rs_y, re_x, re_y, rw_x, rw_y) > 150
             left_hand_out = abs(lw_x - ls_x) > shoulder_width * 0.8
             right_hand_out = abs(rw_x - rs_x) > shoulder_width * 0.8
+
+            # --- Анализ положения ног ---
+            feet_wide = abs(la_x - ra_x) > shoulder_width * 1.5
+            left_knee_bent = self._angle_between(lh_x, lh_y, lk_x, lk_y, la_x, la_y) < 140
+            right_knee_bent = self._angle_between(rh_x, rh_y, rk_x, rk_y, ra_x, ra_y) < 140
+
+            # TREE (Поза дерева)
+            # Руки сведены вместе, одна стопа находится близко к противоположному колену
+            hands_together = abs(lw_x - rw_x) < shoulder_width and abs(lw_y - rw_y) < shoulder_width
+            l_foot_on_r_knee = math.hypot(la_x - rk_x, la_y - rk_y) < shoulder_width * 1.5
+            r_foot_on_l_knee = math.hypot(ra_x - lk_x, ra_y - lk_y) < shoulder_width * 1.5
+            if hands_together and (l_foot_on_r_knee or r_foot_on_l_knee):
+                return "TREE"
+
+            # SUMO (Сумо)
+            # Ноги расставлены широко, оба колена согнуты
+            if feet_wide and left_knee_bent and right_knee_bent:
+                return "SUMO"
+
+            # ONE_LEG_UP (Одна нога вверх)
+            # Одно колено поднято высоко (ближе к уровню бедра), другое опущено
+            l_knee_high = lk_y < lh_y + shoulder_width * 1.2
+            r_knee_high = rk_y < rh_y + shoulder_width * 1.2
+            if l_knee_high != r_knee_high:  # Исключающее ИЛИ (поднята только одна)
+                return "ONE_LEG_UP"
 
             # STAR
             if left_arm_straight and right_arm_straight and left_hand_out and right_hand_out and abs(

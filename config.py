@@ -50,14 +50,19 @@ class Config:
             "HANDS_UP": "./graphics/stick_t_hands_up.png",
             "ONE_HAND_UP": "./graphics/stick_one_hand_up.png",
             "ONE_HAND_SIDE": "./graphics/stick_one_hand_side.png",
-            "STAR": "./graphics/stick_star.png"
+            "STAR": "./graphics/stick_star.png",
+            "SUMO": "./graphics/stick_sumo.png",
+            "TREE": "./graphics/stick_tree.png"
         },
         "HARD": {
             "T_POSE": "./graphics/crab_t_pose.png",
             "HANDS_UP": "./graphics/crab_hands_up.png",
             "ONE_HAND_UP": "./graphics/crab_one_hand_up.png",
             "ONE_HAND_SIDE": "./graphics/crab_one_hand_side.png",
-            "STAR": "./graphics/crab_star.png"
+            "STAR": "./graphics/crab_star.png",
+            "SUMO": "./graphics/crab_sumo.png",
+            "TREE": "./graphics/crab_tree.png",
+            "ONE_LEG_UP": "./graphics/crab_one_leg_up.png"
         }
     }
 
@@ -72,7 +77,7 @@ class Config:
         (6, 12), (11, 12), (11, 13), (13, 15), (12, 14), (14, 16)
     ]
 
-    POSES = ["T_POSE", "HANDS_UP", "ONE_HAND_UP", "ONE_HAND_SIDE", "STAR"]
+    POSES = ["T_POSE", "HANDS_UP", "ONE_HAND_UP", "ONE_HAND_SIDE", "STAR", "SUMO", "TREE", "ONE_LEG_UP"]
 
     POSE_NAMES_RU = {
         "T_POSE": "Руки в стороны",
@@ -80,6 +85,9 @@ class Config:
         "ONE_HAND_UP": "Одна рука вверх",
         "ONE_HAND_SIDE": "Одна рука в сторону",
         "STAR": "Звезда",
+        "SUMO": "Сумо",
+        "TREE": "Поза дерева",
+        "ONE_LEG_UP": "Одна нога вверх",
         "UNKNOWN": "---"
     }
 
@@ -112,7 +120,7 @@ class Config:
         "NORMAL": [
             {
                 "duration": 30,
-                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE"],
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "SUMO"],
                 "pose_time_limit": 4000,
                 "lives": 5,
                 "distractor_interval": 5000,
@@ -120,7 +128,7 @@ class Config:
             },
             {
                 "duration": 40,
-                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP"],
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "SUMO", "TREE"],
                 "pose_time_limit": 3000,
                 "lives": -1,
                 "distractor_interval": 5000,
@@ -128,7 +136,7 @@ class Config:
             },
             {
                 "duration": 45,
-                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE"],
                 "pose_time_limit": 2500,
                 "lives": -1,
                 "distractor_interval": 5000,
@@ -138,7 +146,7 @@ class Config:
         "HARD": [
             {
                 "duration": 40,
-                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE"],
                 "pose_time_limit": 1500,
                 "lives": 3,
                 "distractor_interval": 4000,
@@ -146,7 +154,7 @@ class Config:
             },
             {
                 "duration": 50,
-                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE", "ONE_LEG_UP"],
                 "pose_time_limit": 1000,
                 "lives": -1,
                 "distractor_interval": 4000,
@@ -154,7 +162,7 @@ class Config:
             },
             {
                 "duration": 50,
-                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE", "ONE_LEG_UP"],
                 "pose_time_limit": 500,
                 "lives": -1,
                 "distractor_interval": 4000,
