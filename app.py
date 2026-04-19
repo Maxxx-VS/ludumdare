@@ -106,7 +106,9 @@ class Application:
 
         if current_time - self.last_pose_change >= pose_limit:
             self.game.lives -= 1
-            if self.game.lives <= 0: self.game.state = "LOSE"
+            if self.game.lives <= 0:
+                self.game.state = "LOSE"
+                self.game.stop_music()  # <-- ОСТАНАВЛИВАЕМ МУЗЫКУ
             if self.game.state == "PLAYING":
                 self.game.next_pose()
                 self.last_pose_change = current_time
@@ -243,6 +245,7 @@ class Application:
                         self._handle_difficulty_selection()
                     elif event.key in [pygame.K_BACKSPACE, pygame.K_ESCAPE]:
                         self.game.state = "MAIN_MENU"
+                        self.game.stop_music()  # <-- ОСТАНАВЛИВАЕМ МУЗЫКУ
                         self.menu_index = 0
 
             elif self.game.state in ["SETTINGS", "AUTHORS"]:
@@ -250,9 +253,10 @@ class Application:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.back_rect and self.back_rect.collidepoint(mouse_pos):
                         self.game.state = "MAIN_MENU"
-                elif event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_BACKSPACE,
-                                                                    pygame.K_ESCAPE]:
+                        self.game.stop_music()  # <-- ОСТАНАВЛИВАЕМ МУЗЫКУ
+                elif event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_BACKSPACE, pygame.K_ESCAPE]:
                     self.game.state = "MAIN_MENU"
+                    self.game.stop_music()  # <-- ОСТАНАВЛИВАЕМ МУЗЫКУ
 
             # --- Логика внутри игры ---
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:

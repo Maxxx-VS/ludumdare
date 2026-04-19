@@ -8,6 +8,13 @@ class Config:
     CONFIDENCE = 0.6
     FPS = 30
 
+    # ПУТИ К МУЗЫКЕ
+    MUSIC_PATHS = {
+        0: "./music/difficulty1.mp3",
+        1: "./music/difficulty2.mp3",
+        2: "./music/difficulty3.mp3"
+    }
+
     # ПУТИ К ГРАФИКЕ
     LOGO_PATH = "./graphics/logo.png"
     LOADING_GIF_PATH = "./graphics/loading.gif"
@@ -98,6 +105,12 @@ class Config:
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
                 "pose_time_limit": 1500,
                 "lives": -1
+            },
+            {
+                "duration": 50,
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_time_limit": 1000,
+                "lives": -3
             }
         ]
     }
