@@ -257,6 +257,11 @@ class Application:
                             self.menu_index = i
                             self._handle_difficulty_selection()
 
+            elif self.game.state == "AUTHORS":
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if self.back_rect and self.back_rect.collidepoint(mouse_pos):
+                        self.game.state = "MAIN_MENU"
+
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
                 if self.game.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS"]:
                     self.game.full_reset()
