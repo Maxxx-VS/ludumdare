@@ -24,11 +24,27 @@ class Config:
 
     # ПУТИ К ИЗОБРАЖЕНИЯМ ПОЗ
     POSE_IMAGES = {
-        "T_POSE": "./graphics/t_pose.png",
-        "HANDS_UP": "./graphics/hands_up.png",
-        "ONE_HAND_UP": "./graphics/one_hand_up.png",
-        "ONE_HAND_SIDE": "./graphics/one_hand_side.png",
-        "STAR": "./graphics/star.png"
+        "EASY": {
+            "T_POSE": "./graphics/hum_t_pose.png",
+            "HANDS_UP": "./graphics/hum_hands_up.png",
+            "ONE_HAND_UP": "./graphics/hum_one_hand_up.png",
+            "ONE_HAND_SIDE": "./graphics/hum_one_hand_side.png",
+            "STAR": "./graphics/hum_star.png"
+        },
+        "NORMAL": {
+            "T_POSE": "./graphics/stick_t_pose.png",
+            "HANDS_UP": "./graphics/stick_t_hands_up.png",
+            "ONE_HAND_UP": "./graphics/stick_one_hand_up.png",
+            "ONE_HAND_SIDE": "./graphics/stick_one_hand_side.png",
+            "STAR": "./graphics/stick_star.png"
+        },
+        "HARD": {
+            "T_POSE": "./graphics/crab_t_pose.png",
+            "HANDS_UP": "./graphics/crab_hands_up.png",
+            "ONE_HAND_UP": "./graphics/crab_one_hand_up.png",
+            "ONE_HAND_SIDE": "./graphics/crab_one_hand_side.png",
+            "STAR": "./graphics/crab_star.png"
+        }
     }
 
     POINTS = {

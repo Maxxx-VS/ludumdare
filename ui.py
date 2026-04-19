@@ -25,15 +25,16 @@ class UIRenderer:
         panel_width = Config.WIN_WIDTH - self.right_panel_start
         img_display_width = panel_width - (self.panel_margin * 2)
 
-        self.pose_images = {}
-        for pose_key, path in Config.POSE_IMAGES.items():
-            img = self._load_asset(path)
-            if img:
-                rect = img.get_rect()
-                scale = img_display_width / rect.width
-                new_size = (int(rect.width * scale), int(rect.height * scale))
-                img = pygame.transform.smoothscale(img, new_size)
-                self.pose_images[pose_key] = img
+        self.pose_images = {"EASY": {}, "NORMAL": {}, "HARD": {}}
+        for difficulty, poses in Config.POSE_IMAGES.items():
+            for pose_key, path in poses.items():
+                img = self._load_asset(path)
+                if img:
+                    rect = img.get_rect()
+                    scale = img_display_width / rect.width
+                    new_size = (int(rect.width * scale), int(rect.height * scale))
+                    img = pygame.transform.smoothscale(img, new_size)
+                    self.pose_images[difficulty][pose_key] = img
 
     def _load_asset(self, path):
         if os.path.exists(path):
@@ -208,7 +209,8 @@ class UIRenderer:
         pygame.draw.rect(self.screen, (255, 255, 255), panel_rect, 2)
 
         if not game.is_paused:
-            target_img = self.pose_images.get(game.target_pose)
+            # Достаем картинку с учетом выбранной сложности
+            target_img = self.pose_images.get(game.difficulty, {}).get(game.target_pose)
             if target_img:
                 img_rect = target_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
                                                        self.panel_margin + target_img.get_height() // 2))
