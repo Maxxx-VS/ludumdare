@@ -103,6 +103,9 @@ class Application:
                 self.game.state = "MAIN_MENU"
             return
 
+        if self.game.state != "PLAYING":
+            return
+
         if self.game.is_paused:
             if current_time - self.success_time >= 1000:
                 if self.game.last_result_type == "ERROR":
@@ -117,8 +120,6 @@ class Application:
                     self.game.next_pose()
                     self.last_pose_change = current_time
             return
-
-        if self.game.state != "PLAYING": return
 
         elapsed_sec = (current_time - self.level_start_ticks) // 1000
         self.game.time_left = max(0, self.game.current_level_data["duration"] - elapsed_sec)
