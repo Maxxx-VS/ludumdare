@@ -189,7 +189,9 @@ class Application:
                 is_correct = self.game.update(cur_pose)
 
                 if is_correct and self.game.completed and not self.game.is_paused:
-                    self.game.lives = min(self.game.lives + 1, 10)
+                    # Динамически получаем максимальное число жизней из конфига для текущего уровня
+                    max_lives = self.game.current_level_data.get("max_lives", 10)
+                    self.game.lives = min(self.game.lives + 1, max_lives)
                     self.game.is_paused = True
                     self.game.last_result_type = "SUCCESS"
                     self.success_time = pygame.time.get_ticks()

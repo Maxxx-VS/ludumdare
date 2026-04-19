@@ -101,10 +101,11 @@ class Config:
     DIFFICULTIES = {
         "EASY": [
             {
-                "duration": 30,
+                "duration": 25,
                 "pose_pool": ["T_POSE", "HANDS_UP"],
                 "pose_time_limit": 5000,
                 "lives": 10,
+                "max_lives": 10,
                 "distractor_interval": 10000,
                 "distractor_prob": 0.75
             },
@@ -113,6 +114,7 @@ class Config:
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE"],
                 "pose_time_limit": 4000,
                 "lives": -1,
+                "max_lives": 10,
                 "distractor_interval": 10000,
                 "distractor_prob": 0.75
             }
@@ -121,8 +123,9 @@ class Config:
             {
                 "duration": 30,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "SUMO"],
-                "pose_time_limit": 4000,
-                "lives": 5,
+                "pose_time_limit": 3500,
+                "lives": 7,
+                "max_lives": 7,
                 "distractor_interval": 5000,
                 "distractor_prob": 0.75
             },
@@ -131,24 +134,36 @@ class Config:
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "SUMO", "TREE"],
                 "pose_time_limit": 3000,
                 "lives": -1,
+                "max_lives": 7,
                 "distractor_interval": 5000,
                 "distractor_prob": 0.75
             },
             {
-                "duration": 45,
+                "duration": 50,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE"],
                 "pose_time_limit": 2500,
                 "lives": -1,
+                "max_lives": 7,
                 "distractor_interval": 5000,
                 "distractor_prob": 0.75
             }
         ],
         "HARD": [
             {
-                "duration": 40,
+                "duration": 30,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE"],
+                "pose_time_limit": 2000,
+                "lives": 5,
+                "max_lives": 5,
+                "distractor_interval": 4000,
+                "distractor_prob": 0.75
+            },
+            {
+                "duration": 40,
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE", "ONE_LEG_UP"],
                 "pose_time_limit": 1500,
-                "lives": 3,
+                "lives": -1,
+                "max_lives": 5,
                 "distractor_interval": 4000,
                 "distractor_prob": 0.75
             },
@@ -157,14 +172,7 @@ class Config:
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE", "ONE_LEG_UP"],
                 "pose_time_limit": 1000,
                 "lives": -1,
-                "distractor_interval": 4000,
-                "distractor_prob": 0.75
-            },
-            {
-                "duration": 50,
-                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR", "SUMO", "TREE", "ONE_LEG_UP"],
-                "pose_time_limit": 500,
-                "lives": -1,
+                "max_lives": 5,
                 "distractor_interval": 4000,
                 "distractor_prob": 0.75
             }

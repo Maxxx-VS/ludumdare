@@ -45,11 +45,11 @@ class PoseEngine:
             right_knee_bent = self._angle_between(rh_x, rh_y, rk_x, rk_y, ra_x, ra_y) < 140
 
             # TREE (Поза дерева)
-            # Руки сведены вместе, одна стопа находится близко к противоположному колену
-            hands_together = abs(lw_x - rw_x) < shoulder_width and abs(lw_y - rw_y) < shoulder_width
+            # Реакция только на ноги: одна стопа находится близко к противоположному колену
             l_foot_on_r_knee = math.hypot(la_x - rk_x, la_y - rk_y) < shoulder_width * 1.5
             r_foot_on_l_knee = math.hypot(ra_x - lk_x, ra_y - lk_y) < shoulder_width * 1.5
-            if hands_together and (l_foot_on_r_knee or r_foot_on_l_knee):
+
+            if l_foot_on_r_knee or r_foot_on_l_knee:
                 return "TREE"
 
             # SUMO (Сумо)

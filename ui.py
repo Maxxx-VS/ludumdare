@@ -9,9 +9,11 @@ from distractor import WalkerDistractor
 class UIRenderer:
     def __init__(self, screen):
         self.screen = screen
-        self.font = pygame.font.Font(None, 42)
-        self.font_small = pygame.font.Font(None, 36)
-        self.font_large = pygame.font.Font(None, 72)
+        # Базовые шрифты
+        self.font = pygame.font.Font(None, 72)  # Основной шрифт (счет, таймер, меню)
+        self.font_small = pygame.font.Font(None, 48)  # Мелкий шрифт (подсказки)
+        self.font_tiny = pygame.font.Font(None, 36)  # Микро-шрифт (в 2 раза меньше основного)
+        self.font_large = pygame.font.Font(None, 96)  # Заголовки экранов
 
         self.scale_factor = Config.WIN_HEIGHT / Config.CAM_HEIGHT
         self.scaled_width = int(Config.CAM_WIDTH * self.scale_factor)
@@ -106,7 +108,6 @@ class UIRenderer:
     def draw_main_menu(self, selected_index, mouse_pos):
         self.screen.fill((15, 15, 20))
 
-        # Заголовок-изображение вместо текста
         if self.title_img:
             rect = self.title_img.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4))
             self.screen.blit(self.title_img, rect)
@@ -118,7 +119,7 @@ class UIRenderer:
         options = ["New Game", "Settings", "Authors"]
         for i, opt in enumerate(options):
             color = (0, 255, 0) if i == selected_index else (200, 200, 200)
-            center_y = Config.WIN_HEIGHT // 2 + i * 80
+            center_y = Config.WIN_HEIGHT // 2 + i * 90
             rect = self._draw_text(opt, color, center=(Config.WIN_WIDTH // 2, center_y))
             if rect.collidepoint(mouse_pos):
                 rect = self._draw_text(opt, (255, 255, 0), center=(Config.WIN_WIDTH // 2, center_y))
@@ -128,7 +129,6 @@ class UIRenderer:
     def draw_difficulty_menu(self, selected_index, mouse_pos, hard_unlocked):
         self.screen.fill((15, 15, 20))
 
-        # Заголовок-изображение вместо текста
         if self.select_diff_img:
             rect = self.select_diff_img.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4))
             self.screen.blit(self.select_diff_img, rect)
@@ -147,7 +147,7 @@ class UIRenderer:
                 text = opt
                 base_color = (0, 255, 0) if i == selected_index else (200, 200, 200)
                 hover_color = (255, 255, 0)
-            center_y = Config.WIN_HEIGHT // 2 + i * 80
+            center_y = Config.WIN_HEIGHT // 2 + i * 90
             rect = self._draw_text(text, base_color, center=(Config.WIN_WIDTH // 2, center_y))
             if rect.collidepoint(mouse_pos) and hover_color != (100, 100, 100):
                 rect = self._draw_text(text, hover_color, center=(Config.WIN_WIDTH // 2, center_y))
@@ -157,7 +157,6 @@ class UIRenderer:
     def draw_settings(self, mouse_pos, current_volume):
         self.screen.fill((15, 15, 20))
 
-        # Заголовок-изображение вместо текста
         if self.settings_title_img:
             rect = self.settings_title_img.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4))
             self.screen.blit(self.settings_title_img, rect)
@@ -178,7 +177,7 @@ class UIRenderer:
         pygame.draw.circle(self.screen, (255, 255, 255), (handle_x, slider_y + slider_height // 2), 15)
         vol_percent = int(current_volume * 100)
         self._draw_text(f"{vol_percent}%", (255, 255, 255),
-                        center=(slider_x + slider_width + 60, slider_y + slider_height // 2))
+                        center=(slider_x + slider_width + 80, slider_y + slider_height // 2))
         back_rect = self._draw_text("Back", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
         if back_rect.collidepoint(mouse_pos):
             back_rect = self._draw_text("Back", (255, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
@@ -189,7 +188,7 @@ class UIRenderer:
         self._draw_text("AUTHORS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4), is_large=True)
         for i, author in enumerate(Config.AUTHORS):
             self._draw_text(author, (200, 200, 200),
-                            center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 50 + i * 50))
+                            center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 50 + i * 75))
         back_rect = self._draw_text("Back", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
         if back_rect.collidepoint(mouse_pos):
             back_rect = self._draw_text("Back", (255, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
@@ -208,11 +207,15 @@ class UIRenderer:
         self.screen.fill((15, 15, 20))
         level_num = game.current_level_index + 1
         dur = game.current_level_data["duration"]
+
         text_lvl = self.font_large.render(f"УРОВЕНЬ {level_num}", True, (255, 215, 0))
-        self.screen.blit(text_lvl, text_lvl.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 50)))
+        self.screen.blit(text_lvl, text_lvl.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 80)))
+
         self._draw_text(f"Длительность: {dur} сек", (200, 200, 200),
-                        center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 20), is_small=True)
-        self._draw_text("Приготовьтесь!", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 80))
+                        center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 20))
+
+        self._draw_text("Приготовьтесь!", (0, 255, 0),
+                        center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 100))
 
     def draw_end_screen(self, state):
         self.screen.fill((0, 0, 0))
@@ -284,28 +287,41 @@ class UIRenderer:
                             center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 50))
 
         bottom_y = Config.WIN_HEIGHT - self.panel_margin
+
         self._draw_text("R / SPACE — рестарт", (180, 180, 180), is_small=True,
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y))
-        pose_name = Config.POSE_NAMES_RU.get(cur_pose, "---")
-        self._draw_text(f"Текущая: {pose_name}", (0, 255, 0), is_small=True,
-                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 40))
-        rect_w, rect_h, gap = 20, 15, 5
-        start_x = Config.WIN_WIDTH - self.panel_margin - (10 * rect_w + 9 * gap)
-        for i in range(10):
-            color = (0, 255, 0) if i < game.lives else (100, 100, 100)
-            pygame.draw.rect(self.screen, color, (start_x + i * (rect_w + gap), bottom_y - 80, rect_w, rect_h))
-        self._draw_text(f"Осталось: {game.time_left} сек", (255, 255, 255),
-                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 110))
-        self._draw_text(f"Счёт: {game.score}", (255, 255, 255),
-                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 150))
 
-    def _draw_text(self, text, color, center=None, bottomright=None, is_small=False, is_large=False):
+        # Используем is_tiny=True для текущей позы (шрифт 36)
+        pose_name = Config.POSE_NAMES_RU.get(cur_pose, "---")
+        self._draw_text(f"Текущая: {pose_name}", (0, 255, 0), is_tiny=True,
+                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 60))
+
+        # Динамический рендер жизней на основе конфигурации уровня
+        max_lives = game.current_level_data.get("max_lives", 10)
+        rect_w, rect_h, gap = 30, 20, 8
+        total_width = max_lives * rect_w + max(0, max_lives - 1) * gap
+        start_x = Config.WIN_WIDTH - self.panel_margin - total_width
+
+        for i in range(max_lives):
+            color = (0, 255, 0) if i < game.lives else (100, 100, 100)
+            pygame.draw.rect(self.screen, color, (start_x + i * (rect_w + gap), bottom_y - 140, rect_w, rect_h))
+
+        self._draw_text(f"Осталось: {game.time_left} сек", (255, 255, 255),
+                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 190))
+
+        self._draw_text(f"Счёт: {game.score}", (255, 255, 255),
+                        bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 260))
+
+    def _draw_text(self, text, color, center=None, bottomright=None, is_tiny=False, is_small=False, is_large=False):
         if is_large:
             font = self.font_large
         elif is_small:
             font = self.font_small
+        elif is_tiny:
+            font = self.font_tiny
         else:
             font = self.font
+
         surf = font.render(str(text), True, color)
         rect = surf.get_rect()
         if center: rect.center = center
