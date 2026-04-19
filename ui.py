@@ -47,6 +47,19 @@ class UIRenderer:
         if self.lose_img:
             self.lose_img = pygame.transform.smoothscale(self.lose_img, (Config.WIN_WIDTH, Config.WIN_HEIGHT))
 
+        # --- ЗАГРУЗКА ИЗОБРАЖЕНИЙ ЗАГОЛОВКОВ (900x480) ---
+        self.title_img = self._load_asset(Config.TITLE_IMAGE_PATH)
+        if self.title_img:
+            self.title_img = pygame.transform.smoothscale(self.title_img, (900, 480))
+
+        self.settings_title_img = self._load_asset(Config.SETTINGS_IMAGE_PATH)
+        if self.settings_title_img:
+            self.settings_title_img = pygame.transform.smoothscale(self.settings_title_img, (900, 480))
+
+        self.select_diff_img = self._load_asset(Config.SELECT_DIFFICULTY_IMAGE_PATH)
+        if self.select_diff_img:
+            self.select_diff_img = pygame.transform.smoothscale(self.select_diff_img, (900, 480))
+
         self.pose_images = {"EASY": {}, "NORMAL": {}, "HARD": {}}
         for difficulty, poses in Config.POSE_IMAGES.items():
             for pose_key, path in poses.items():
@@ -58,7 +71,6 @@ class UIRenderer:
                     img = pygame.transform.smoothscale(img, new_size)
                     self.pose_images[difficulty][pose_key] = img
 
-        # Дистрактор
         self.distractor = WalkerDistractor()
         self.last_game_state = "SPLASH"
 
@@ -93,8 +105,14 @@ class UIRenderer:
 
     def draw_main_menu(self, selected_index, mouse_pos):
         self.screen.fill((15, 15, 20))
-        self._draw_text("SIGNAL FLOW", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
-                        is_large=True)
+
+        # Заголовок-изображение вместо текста
+        if self.title_img:
+            rect = self.title_img.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4))
+            self.screen.blit(self.title_img, rect)
+        else:
+            self._draw_text("SIGNAL FLOW", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
+                            is_large=True)
 
         rects = []
         options = ["New Game", "Settings", "Authors"]
@@ -109,8 +127,15 @@ class UIRenderer:
 
     def draw_difficulty_menu(self, selected_index, mouse_pos, hard_unlocked):
         self.screen.fill((15, 15, 20))
-        self._draw_text("SELECT DIFFICULTY", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
-                        is_large=True)
+
+        # Заголовок-изображение вместо текста
+        if self.select_diff_img:
+            rect = self.select_diff_img.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4))
+            self.screen.blit(self.select_diff_img, rect)
+        else:
+            self._draw_text("SELECT DIFFICULTY", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
+                            is_large=True)
+
         rects = []
         options = ["Easy", "Normal", "Hard", "Back"]
         for i, opt in enumerate(options):
@@ -131,10 +156,17 @@ class UIRenderer:
 
     def draw_settings(self, mouse_pos, current_volume):
         self.screen.fill((15, 15, 20))
-        self._draw_text("SETTINGS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
-                        is_large=True)
+
+        # Заголовок-изображение вместо текста
+        if self.settings_title_img:
+            rect = self.settings_title_img.get_rect(center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4))
+            self.screen.blit(self.settings_title_img, rect)
+        else:
+            self._draw_text("SETTINGS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
+                            is_large=True)
+
         self._draw_text("Music Volume:", (200, 200, 200),
-                                         center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 40))
+                        center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 40))
         slider_width, slider_height = 400, 10
         slider_x = (Config.WIN_WIDTH - slider_width) // 2
         slider_y = Config.WIN_HEIGHT // 2 + 10
@@ -237,22 +269,13 @@ class UIRenderer:
         if res_img:
             img_rect = res_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
                                                 self.panel_margin + res_img.get_height() // 2))
-
-            # 1. СНАЧАЛА рисуем картинку позы (она ложится на самый нижний слой)
             self.screen.blit(res_img, img_rect)
 
-            # 2. ЗАТЕМ обновляем и рисуем дистрактора (он ляжет ПОВЕРХ позы)
             if game.state == "PLAYING":
                 self.distractor.update(current_time, img_rect, game.is_paused, game.current_level_data)
-
                 if not game.is_paused:
-                    # Ограничиваем зону отрисовки правой панелью (чтобы не лез на окно OpenCV)
                     self.screen.set_clip(panel_rect)
-
-                    # Рисуем дистрактора
                     self.distractor.draw(self.screen, current_time)
-
-                    # Обязательно снимаем маску
                     self.screen.set_clip(None)
 
         elif not game.is_paused:
@@ -277,9 +300,12 @@ class UIRenderer:
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 150))
 
     def _draw_text(self, text, color, center=None, bottomright=None, is_small=False, is_large=False):
-        if is_large: font = self.font_large
-        elif is_small: font = self.font_small
-        else: font = self.font
+        if is_large:
+            font = self.font_large
+        elif is_small:
+            font = self.font_small
+        else:
+            font = self.font
         surf = font.render(str(text), True, color)
         rect = surf.get_rect()
         if center: rect.center = center

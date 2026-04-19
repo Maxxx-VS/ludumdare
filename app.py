@@ -38,7 +38,7 @@ class Application:
         self.level_start_ticks = 0
         self.transition_start_ticks = 0
         self.success_time = 0
-        self.end_state_ticks = 0  # НОВАЯ ПЕРЕМЕННАЯ ДЛЯ ФИНАЛЬНЫХ ЭКРАНОВ
+        self.end_state_ticks = 0
         self.running = True
 
         self.cv_loading_thread = None
@@ -92,14 +92,13 @@ class Application:
                 self.last_pose_change = current_time
             return
 
-        # ТАЙМЕРЫ ЭКРАНОВ ПОБЕДЫ И ПОРАЖЕНИЯ
         if self.game.state == "WIN":
-            if current_time - self.end_state_ticks >= 5000:  # 5 секунд
+            if current_time - self.end_state_ticks >= 5000:
                 self.game.state = "MAIN_MENU"
             return
 
         if self.game.state == "LOSE":
-            if current_time - self.end_state_ticks >= 3000:  # 3 секунды
+            if current_time - self.end_state_ticks >= 3000:
                 self.game.state = "MAIN_MENU"
             return
 
@@ -114,7 +113,7 @@ class Application:
                         self.game.state = "LOSE"
                         self.end_state_ticks = current_time
                         self.game.stop_music()
-                        return  # Выходим, чтобы не продолжать играть
+                        return
 
                 if self.game.state == "PLAYING":
                     self.game.next_pose()
@@ -152,7 +151,6 @@ class Application:
 
             mouse_pos = pygame.mouse.get_pos()
 
-            # ОБНОВЛЕННЫЙ СПИСОК СОСТОЯНИЙ БЕЗ КАМЕРЫ (ВКЛЮЧАЯ WIN И LOSE)
             if self.game.state in ["SPLASH", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS", "LOADING", "WIN",
                                    "LOSE"]:
                 if self.game.state == "SPLASH":
@@ -232,9 +230,25 @@ class Application:
                     self.game.stop_music()
                     self.menu_index = 0
                     self.is_dragging_volume = False
+                continue
 
             if self.game.state == "MAIN_MENU":
-                if event.type == pygame.MOUSEMOTION:
+                # Клавиатура
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        self.menu_index = (self.menu_index - 1) % 3
+                    elif event.key == pygame.K_DOWN:
+                        self.menu_index = (self.menu_index + 1) % 3
+                    elif event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                        if self.menu_index == 0:
+                            self.game.state = "DIFFICULTY_MENU"
+                            self.menu_index = 0
+                        elif self.menu_index == 1:
+                            self.game.state = "SETTINGS"
+                        elif self.menu_index == 2:
+                            self.game.state = "AUTHORS"
+                # Мышь
+                elif event.type == pygame.MOUSEMOTION:
                     for i, rect in enumerate(self.menu_rects):
                         if rect.collidepoint(mouse_pos):
                             self.menu_index = i
@@ -251,21 +265,28 @@ class Application:
                                 self.game.state = "AUTHORS"
 
             elif self.game.state == "SETTINGS":
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                    self.game.state = "MAIN_MENU"
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.slider_rect and self.slider_rect.collidepoint(mouse_pos):
                         self.is_dragging_volume = True
                         self._update_volume_from_mouse(mouse_pos[0])
                     elif self.back_rect and self.back_rect.collidepoint(mouse_pos):
                         self.game.state = "MAIN_MENU"
-
                 elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                     self.is_dragging_volume = False
-
                 elif event.type == pygame.MOUSEMOTION and self.is_dragging_volume:
                     self._update_volume_from_mouse(mouse_pos[0])
 
             elif self.game.state == "DIFFICULTY_MENU":
-                if event.type == pygame.MOUSEMOTION:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        self.menu_index = (self.menu_index - 1) % 4
+                    elif event.key == pygame.K_DOWN:
+                        self.menu_index = (self.menu_index + 1) % 4
+                    elif event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                        self._handle_difficulty_selection()
+                elif event.type == pygame.MOUSEMOTION:
                     for i, rect in enumerate(self.menu_rects):
                         if rect.collidepoint(mouse_pos):
                             self.menu_index = i
@@ -276,11 +297,12 @@ class Application:
                             self._handle_difficulty_selection()
 
             elif self.game.state == "AUTHORS":
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                    self.game.state = "MAIN_MENU"
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.back_rect and self.back_rect.collidepoint(mouse_pos):
                         self.game.state = "MAIN_MENU"
 
-            # БЛОКИРУЕМ РЕСТАРТ ВО ВРЕМЯ ЭКРАНОВ WIN И LOSE (чтобы досмотрели анимацию/картинку)
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
                 if self.game.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS",
                                            "WIN", "LOSE"]:
@@ -288,9 +310,7 @@ class Application:
                     self.transition_start_ticks = pygame.time.get_ticks()
 
     def _update_volume_from_mouse(self, mouse_x):
-        """Вспомогательный метод для расчета громкости по позиции мыши."""
         if self.slider_rect:
-            # Вычисляем относительное положение клика на ползунке
             relative_x = mouse_x - self.slider_rect.x
             new_volume = relative_x / self.slider_rect.width
             self.game.set_volume(new_volume)

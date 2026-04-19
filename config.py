@@ -1,6 +1,5 @@
 import os
 
-
 class Config:
     MODEL_PT = "yolo11s-pose.pt"
     MODEL_ENGINE = "yolo11s-pose.engine"
@@ -10,7 +9,7 @@ class Config:
     FPS = 30
 
     # ГРОМКОСТЬ ПО УМОЛЧАНИЮ
-    DEFAULT_VOLUME = 0.5
+    DEFAULT_VOLUME = 0.25
 
     # НАСТРОЙКИ ДИСТРАКТОРА (WALKER)
     WALKER_GIF_PATH = "./graphics/walker.gif"
@@ -21,7 +20,12 @@ class Config:
     OK_IMAGE_PATH = "./graphics/okey.png"
     ERROR_GIF_PATH = "./graphics/error.gif"
 
-    # НОВЫЕ ПУТИ
+    # НОВЫЕ ПУТИ ДЛЯ ЗАГОЛОВКОВ МЕНЮ
+    TITLE_IMAGE_PATH = "./graphics/title.png"
+    SETTINGS_IMAGE_PATH = "./graphics/settings.png"
+    SELECT_DIFFICULTY_IMAGE_PATH = "./graphics/select_difficullty.png"
+
+    # НОВЫЕ ПУТИ ДЛЯ ЭКРАНОВ КОНЦА ИГРЫ
     WIN_IMAGE_PATH = "./graphics/youwin.png"
     LOSE_IMAGE_PATH = "./graphics/gameover.png"
 
@@ -86,7 +90,6 @@ class Config:
         "Code - Petr Bychkov",
     ]
 
-    # НАСТРОЙКИ СЛОЖНОСТЕЙ
     DIFFICULTIES = {
         "EASY": [
             {
