@@ -9,36 +9,40 @@ class GameEngine:
         self.state = "SPLASH"
         self.difficulty = "EASY"
         self.hard_unlocked = False
-        self.sound_enabled = True
         self.full_reset()
 
-        # --- Новые методы для управления музыкой ---
-        def play_music(self, index):
-            if not self.sound_enabled or not pygame.mixer.get_init():
-                return
+    def play_music(self, index):
+        """Запускает музыку, соответствующую индексу внутреннего уровня."""
+        if not pygame.mixer.get_init():
+            return
 
-            # Если этапов больше чем треков, играем последний доступный
-            track_index = min(index, len(Config.MUSIC_PATHS) - 1)
-            track_path = Config.MUSIC_PATHS.get(track_index)
+        track_path = Config.MUSIC_PATHS.get(index)
+        if track_path:
+            try:
+                pygame.mixer.music.load(track_path)
+                pygame.mixer.music.play(-1)  # Цикличное воспроизведение
+            except Exception as e:
+                print(f"Ошибка воспроизведения музыки: {e}")
 
-            if track_path:
-                try:
-                    pygame.mixer.music.load(track_path)
-                    pygame.mixer.music.play(-1)  # -1 для бесконечного зацикливания трека
-                except Exception as e:
-                    print(f"Ошибка загрузки музыки: {e}")
+    def stop_music(self):
+        """Останавливает текущую музыку."""
+        if pygame.mixer.get_init():
+            pygame.mixer.music.stop()
 
-        def stop_music(self):
-            if pygame.mixer.get_init():
-                pygame.mixer.music.stop()
-        # -------------------------------------------
+    def full_reset(self):
+        self.score = 0
+        self.current_level_index = 0
+        # Не переключать стейт, если мы находимся в системных экранах
+        if self.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS"]:
+            self.state = "LEVEL_TRANSITION"
+        self.load_level(0)
 
     def load_level(self, index):
         levels_for_diff = Config.DIFFICULTIES[self.difficulty]
 
         if index >= len(levels_for_diff):
             self.state = "WIN"
-            self.stop_music()  # Останавливаем музыку при победе
+            self.stop_music()
             if self.difficulty == "NORMAL":
                 self.hard_unlocked = True
             return
@@ -49,7 +53,8 @@ class GameEngine:
         l_lives = self.current_level_data.get("lives", -1)
         if l_lives != -1: self.lives = l_lives
 
-        self.play_music(index)  # Запускаем музыку, соответствующую индексу этапа
+        # Запуск музыки для текущего этапа
+        self.play_music(index)
         self.next_pose()
 
     def next_pose(self):

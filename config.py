@@ -8,16 +8,16 @@ class Config:
     CONFIDENCE = 0.6
     FPS = 30
 
+    # ПУТИ К ГРАФИКЕ
+    LOGO_PATH = "./graphics/logo.png"
+    LOADING_GIF_PATH = "./graphics/loading.gif"
+
     # ПУТИ К МУЗЫКЕ
     MUSIC_PATHS = {
         0: "./music/difficulty1.mp3",
         1: "./music/difficulty2.mp3",
         2: "./music/difficulty3.mp3"
     }
-
-    # ПУТИ К ГРАФИКЕ
-    LOGO_PATH = "./graphics/logo.png"
-    LOADING_GIF_PATH = "./graphics/loading.gif"
 
     # ПУТИ К ИЗОБРАЖЕНИЯМ ПОЗ
     POSE_IMAGES = {
@@ -63,14 +63,14 @@ class Config:
             {
                 "duration": 30,
                 "pose_pool": ["T_POSE", "HANDS_UP"],
-                "pose_time_limit": 5000,  # Много времени на позу
+                "pose_time_limit": 5000,
                 "lives": 10
             },
             {
                 "duration": 40,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE"],
                 "pose_time_limit": 4000,
-                "lives": -1  # Жизни переносятся с предыдущего этапа
+                "lives": -1
             }
         ],
         "NORMAL": [
@@ -97,7 +97,7 @@ class Config:
             {
                 "duration": 40,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
-                "pose_time_limit": 2000,  # Очень мало времени
+                "pose_time_limit": 2000,
                 "lives": 3
             },
             {
@@ -110,7 +110,7 @@ class Config:
                 "duration": 50,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
                 "pose_time_limit": 1000,
-                "lives": -3
+                "lives": -1 # Жизни переносятся
             }
         ]
     }

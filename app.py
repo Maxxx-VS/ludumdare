@@ -60,7 +60,7 @@ class Application:
 
         if self.game.state == "SPLASH":
             if current_time - self.start_ticks >= 2000:
-                self.game.state = "MAIN_MENU"  # После логотипа переходим в меню
+                self.game.state = "MAIN_MENU"
             return
 
         if self.game.state == "LOADING":
@@ -88,6 +88,7 @@ class Application:
             next_lvl = self.game.current_level_index + 1
             if next_lvl >= len(Config.DIFFICULTIES[self.game.difficulty]):
                 self.game.state = "WIN"
+                self.game.stop_music()
                 if self.game.difficulty == "NORMAL":
                     self.game.hard_unlocked = True
             else:
@@ -108,7 +109,7 @@ class Application:
             self.game.lives -= 1
             if self.game.lives <= 0:
                 self.game.state = "LOSE"
-                self.game.stop_music()  # <-- ОСТАНАВЛИВАЕМ МУЗЫКУ
+                self.game.stop_music()
             if self.game.state == "PLAYING":
                 self.game.next_pose()
                 self.last_pose_change = current_time
@@ -120,7 +121,6 @@ class Application:
 
             mouse_pos = pygame.mouse.get_pos()
 
-            # Отрисовка системных экранов, до инициализации CV
             if self.game.state in ["SPLASH", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS", "LOADING"]:
                 if self.game.state == "SPLASH":
                     self.ui_renderer.draw_splash()
@@ -189,11 +189,14 @@ class Application:
         mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                self.running = False
+                if self.game.state == "MAIN_MENU":
+                    self.running = False
+                else:
+                    self.game.state = "MAIN_MENU"
+                    self.game.stop_music()
+                    self.menu_index = 0
 
-            # --- Логика меню ---
             if self.game.state == "MAIN_MENU":
-                # Обработка мыши
                 if event.type == pygame.MOUSEMOTION:
                     for i, rect in enumerate(self.menu_rects):
                         if rect.collidepoint(mouse_pos):
@@ -209,7 +212,6 @@ class Application:
                                 self.game.state = "SETTINGS"
                             elif self.menu_index == 2:
                                 self.game.state = "AUTHORS"
-                # Обработка клавиатуры (Стрелки + Enter)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.menu_index = (self.menu_index - 1) % 3
@@ -225,7 +227,6 @@ class Application:
                             self.game.state = "AUTHORS"
 
             elif self.game.state == "DIFFICULTY_MENU":
-                # Обработка мыши
                 if event.type == pygame.MOUSEMOTION:
                     for i, rect in enumerate(self.menu_rects):
                         if rect.collidepoint(mouse_pos):
@@ -235,7 +236,6 @@ class Application:
                         if rect.collidepoint(mouse_pos):
                             self.menu_index = i
                             self._handle_difficulty_selection()
-                # Обработка клавиатуры (Стрелки + Enter)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.menu_index = (self.menu_index - 1) % 4
@@ -245,22 +245,19 @@ class Application:
                         self._handle_difficulty_selection()
                     elif event.key in [pygame.K_BACKSPACE, pygame.K_ESCAPE]:
                         self.game.state = "MAIN_MENU"
-                        self.game.stop_music()  # <-- ОСТАНАВЛИВАЕМ МУЗЫКУ
+                        self.game.stop_music()
                         self.menu_index = 0
 
             elif self.game.state in ["SETTINGS", "AUTHORS"]:
-                # Обработка кнопки "Back"
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.back_rect and self.back_rect.collidepoint(mouse_pos):
                         self.game.state = "MAIN_MENU"
-                        self.game.stop_music()  # <-- ОСТАНАВЛИВАЕМ МУЗЫКУ
+                        self.game.stop_music()
                 elif event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_BACKSPACE, pygame.K_ESCAPE]:
                     self.game.state = "MAIN_MENU"
-                    self.game.stop_music()  # <-- ОСТАНАВЛИВАЕМ МУЗЫКУ
+                    self.game.stop_music()
 
-            # --- Логика внутри игры ---
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
-                # Рестарт во время игры, но блокируем его, если мы в меню
                 if self.game.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS"]:
                     self.game.full_reset()
                     self.transition_start_ticks = pygame.time.get_ticks()
