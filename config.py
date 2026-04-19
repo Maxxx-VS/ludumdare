@@ -12,8 +12,7 @@ class Config:
     # ГРОМКОСТЬ ПО УМОЛЧАНИЮ
     DEFAULT_VOLUME = 0.5
 
-    # НАСТРОЙКИ ДИСТРАКТОРА
-    DISTRACT_PHASE = 5000  # Интервал появления (в миллисекундах)
+    # НАСТРОЙКИ ДИСТРАКТОРА (WALKER)
     WALKER_GIF_PATH = "./graphics/walker.gif"
 
     # ПУТИ К ГРАФИКЕ
@@ -94,13 +93,17 @@ class Config:
                 "duration": 30,
                 "pose_pool": ["T_POSE", "HANDS_UP"],
                 "pose_time_limit": 5000,
-                "lives": 10
+                "lives": 10,
+                "distractor_interval": 10000,
+                "distractor_prob": 0.5
             },
             {
                 "duration": 40,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE"],
                 "pose_time_limit": 4000,
-                "lives": -1
+                "lives": -1,
+                "distractor_interval": 10000,
+                "distractor_prob": 0.5
             }
         ],
         "NORMAL": [
@@ -108,19 +111,25 @@ class Config:
                 "duration": 30,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE"],
                 "pose_time_limit": 4000,
-                "lives": 5
+                "lives": 5,
+                "distractor_interval": 5000,
+                "distractor_prob": 0.5
             },
             {
                 "duration": 40,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP"],
                 "pose_time_limit": 3000,
-                "lives": -1
+                "lives": -1,
+                "distractor_interval": 5000,
+                "distractor_prob": 0.5
             },
             {
                 "duration": 45,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
                 "pose_time_limit": 2500,
-                "lives": -1
+                "lives": -1,
+                "distractor_interval": 5000,
+                "distractor_prob": 0.5
             }
         ],
         "HARD": [
@@ -128,19 +137,25 @@ class Config:
                 "duration": 40,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
                 "pose_time_limit": 1500,
-                "lives": 3
+                "lives": 3,
+                "distractor_interval": 4000,
+                "distractor_prob": 0.5
             },
             {
                 "duration": 50,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
                 "pose_time_limit": 1000,
-                "lives": -1
+                "lives": -1,
+                "distractor_interval": 4000,
+                "distractor_prob": 0.5
             },
             {
                 "duration": 50,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
                 "pose_time_limit": 500,
-                "lives": -1  # Жизни переносятся
+                "lives": -1,
+                "distractor_interval": 4000,
+                "distractor_prob": 0.5
             }
         ]
     }

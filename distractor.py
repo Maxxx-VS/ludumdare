@@ -1,5 +1,6 @@
 import pygame
 import os
+import random
 from PIL import Image, ImageSequence
 from config import Config
 
@@ -10,7 +11,7 @@ class WalkerDistractor:
         self.active = False
         self.x = 0
         self.y = 0
-        self.speed = 10  # Скорость прохождения дистрактора
+        self.speed = 10
         self.last_trigger_time = pygame.time.get_ticks()
         self.last_update_time = pygame.time.get_ticks()
         self.gif_fps = 15
@@ -32,30 +33,32 @@ class WalkerDistractor:
         return frames
 
     def reset(self, current_time):
-        """Сбрасывает таймер дистрактора и скрывает его."""
         self.active = False
         self.last_trigger_time = current_time
         self.last_update_time = current_time
 
-    def update(self, current_time, target_rect, is_paused):
-        """Обновляет состояние, таймер и позицию дистрактора."""
+    def update(self, current_time, target_rect, is_paused, level_data):
+        """Обновляет состояние дистрактора, читая настройки из конфигурации текущего уровня."""
         if is_paused:
-            # Сдвигаем таймер, чтобы во время показа галочки/крестика отсчет не шел
             if not self.active:
                 self.last_trigger_time += (current_time - self.last_update_time)
         else:
             if not self.active:
-                # Проверяем, пришло ли время выпускать дистрактор
-                if current_time - self.last_trigger_time >= Config.DISTRACT_PHASE:
-                    self.active = True
+                # Достаем параметры текущего уровня (если их нет, ставим дефолт 10 сек и шанс 0)
+                interval = level_data.get("distractor_interval", 10000)
+                prob = level_data.get("distractor_prob", 0.0)
+
+                # Проверяем, прошел ли временной интервал
+                if current_time - self.last_trigger_time >= interval:
                     self.last_trigger_time = current_time
-                    if target_rect:
-                        # Начинаем движение слева, за пределами картинки позы
-                        self.x = target_rect.left - 150
-                        self.y = target_rect.centery
+
+                    if random.random() < prob:
+                        self.active = True
+                        if target_rect:
+                            self.x = target_rect.left - 150
+                            self.y = target_rect.centery
             else:
                 self.x += self.speed
-                # Если ушел достаточно далеко вправо, деактивируем
                 if target_rect and self.x > target_rect.right + 150:
                     self.active = False
                     self.last_trigger_time = current_time
@@ -63,7 +66,6 @@ class WalkerDistractor:
         self.last_update_time = current_time
 
     def draw(self, screen, current_time):
-        """Отрисовывает дистрактора поверх переданного экрана."""
         if self.active and self.frames:
             frame_idx = (current_time // (1000 // self.gif_fps)) % len(self.frames)
             current_frame = self.frames[frame_idx]

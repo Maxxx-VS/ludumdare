@@ -26,7 +26,6 @@ class UIRenderer:
         panel_width = Config.WIN_WIDTH - self.right_panel_start
         img_display_width = panel_width - (self.panel_margin * 2)
 
-        # Загрузка фидбек-ассетов
         self.ok_img = self._load_asset(Config.OK_IMAGE_PATH)
         self.error_frames = self._load_gif(Config.ERROR_GIF_PATH)
 
@@ -40,7 +39,6 @@ class UIRenderer:
             new_size = (int(frame.get_width() * scale), int(frame.get_height() * scale))
             self.error_frames[i] = pygame.transform.smoothscale(frame, new_size)
 
-        # ЗАГРУЗКА И МАСШТАБИРОВАНИЕ ФИНАЛЬНЫХ ЭКРАНОВ
         self.win_img = self._load_asset(Config.WIN_IMAGE_PATH)
         if self.win_img:
             self.win_img = pygame.transform.smoothscale(self.win_img, (Config.WIN_WIDTH, Config.WIN_HEIGHT))
@@ -49,7 +47,6 @@ class UIRenderer:
         if self.lose_img:
             self.lose_img = pygame.transform.smoothscale(self.lose_img, (Config.WIN_WIDTH, Config.WIN_HEIGHT))
 
-        # Загрузка ассетов поз по сложностям
         self.pose_images = {"EASY": {}, "NORMAL": {}, "HARD": {}}
         for difficulty, poses in Config.POSE_IMAGES.items():
             for pose_key, path in poses.items():
@@ -61,7 +58,7 @@ class UIRenderer:
                     img = pygame.transform.smoothscale(img, new_size)
                     self.pose_images[difficulty][pose_key] = img
 
-        # Инициализация дистрактора
+        # Дистрактор
         self.distractor = WalkerDistractor()
         self.last_game_state = "SPLASH"
 
@@ -104,12 +101,9 @@ class UIRenderer:
         for i, opt in enumerate(options):
             color = (0, 255, 0) if i == selected_index else (200, 200, 200)
             center_y = Config.WIN_HEIGHT // 2 + i * 80
-
             rect = self._draw_text(opt, color, center=(Config.WIN_WIDTH // 2, center_y))
-
             if rect.collidepoint(mouse_pos):
                 rect = self._draw_text(opt, (255, 255, 0), center=(Config.WIN_WIDTH // 2, center_y))
-
             rects.append(rect)
         return rects
 
@@ -117,7 +111,6 @@ class UIRenderer:
         self.screen.fill((15, 15, 20))
         self._draw_text("SELECT DIFFICULTY", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
                         is_large=True)
-
         rects = []
         options = ["Easy", "Normal", "Hard", "Back"]
         for i, opt in enumerate(options):
@@ -129,14 +122,10 @@ class UIRenderer:
                 text = opt
                 base_color = (0, 255, 0) if i == selected_index else (200, 200, 200)
                 hover_color = (255, 255, 0)
-
             center_y = Config.WIN_HEIGHT // 2 + i * 80
-
             rect = self._draw_text(text, base_color, center=(Config.WIN_WIDTH // 2, center_y))
-
             if rect.collidepoint(mouse_pos) and hover_color != (100, 100, 100):
                 rect = self._draw_text(text, hover_color, center=(Config.WIN_WIDTH // 2, center_y))
-
             rects.append(rect)
         return rects
 
@@ -144,46 +133,34 @@ class UIRenderer:
         self.screen.fill((15, 15, 20))
         self._draw_text("SETTINGS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4),
                         is_large=True)
-
-        vol_label_rect = self._draw_text("Music Volume:", (200, 200, 200),
+        self._draw_text("Music Volume:", (200, 200, 200),
                                          center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 40))
-
-        slider_width = 400
-        slider_height = 10
+        slider_width, slider_height = 400, 10
         slider_x = (Config.WIN_WIDTH - slider_width) // 2
         slider_y = Config.WIN_HEIGHT // 2 + 10
         slider_rect = pygame.Rect(slider_x, slider_y, slider_width, slider_height)
-
         pygame.draw.rect(self.screen, (100, 100, 100), slider_rect, border_radius=5)
-
         filled_rect = pygame.Rect(slider_x, slider_y, int(slider_width * current_volume), slider_height)
         pygame.draw.rect(self.screen, (0, 255, 0), filled_rect, border_radius=5)
-
         handle_x = slider_x + int(slider_width * current_volume)
         pygame.draw.circle(self.screen, (255, 255, 255), (handle_x, slider_y + slider_height // 2), 15)
-
         vol_percent = int(current_volume * 100)
         self._draw_text(f"{vol_percent}%", (255, 255, 255),
                         center=(slider_x + slider_width + 60, slider_y + slider_height // 2))
-
         back_rect = self._draw_text("Back", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
         if back_rect.collidepoint(mouse_pos):
             back_rect = self._draw_text("Back", (255, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
-
         return back_rect, slider_rect
 
     def draw_authors(self, mouse_pos):
         self.screen.fill((15, 15, 20))
         self._draw_text("AUTHORS", (255, 215, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 4), is_large=True)
-
         for i, author in enumerate(Config.AUTHORS):
             self._draw_text(author, (200, 200, 200),
                             center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 - 50 + i * 50))
-
         back_rect = self._draw_text("Back", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
         if back_rect.collidepoint(mouse_pos):
             back_rect = self._draw_text("Back", (255, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT - 100))
-
         return back_rect
 
     def draw_loading(self):
@@ -219,7 +196,6 @@ class UIRenderer:
     def draw(self, frame, game, cur_pose, is_correct):
         current_time = pygame.time.get_ticks()
 
-        # Сброс таймера дистрактора при входе в PLAYING стейт
         if self.last_game_state != "PLAYING" and game.state == "PLAYING":
             self.distractor.reset(current_time)
         self.last_game_state = game.state
@@ -263,9 +239,9 @@ class UIRenderer:
                                                 self.panel_margin + res_img.get_height() // 2))
             self.screen.blit(res_img, img_rect)
 
-            # --- ИНТЕГРАЦИЯ ДИСТРАКТОРА ---
+            # --- ОБНОВЛЕННЫЙ ВЫЗОВ С ПЕРЕДАЧЕЙ ДАННЫХ УРОВНЯ ---
             if game.state == "PLAYING":
-                self.distractor.update(current_time, img_rect, game.is_paused)
+                self.distractor.update(current_time, img_rect, game.is_paused, game.current_level_data)
                 if not game.is_paused:
                     self.distractor.draw(self.screen, current_time)
 
@@ -277,31 +253,23 @@ class UIRenderer:
         bottom_y = Config.WIN_HEIGHT - self.panel_margin
         self._draw_text("R / SPACE — рестарт", (180, 180, 180), is_small=True,
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y))
-
         pose_name = Config.POSE_NAMES_RU.get(cur_pose, "---")
         self._draw_text(f"Текущая: {pose_name}", (0, 255, 0), is_small=True,
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 40))
-
         rect_w, rect_h, gap = 20, 15, 5
         start_x = Config.WIN_WIDTH - self.panel_margin - (10 * rect_w + 9 * gap)
         for i in range(10):
             color = (0, 255, 0) if i < game.lives else (100, 100, 100)
             pygame.draw.rect(self.screen, color, (start_x + i * (rect_w + gap), bottom_y - 80, rect_w, rect_h))
-
         self._draw_text(f"Осталось: {game.time_left} сек", (255, 255, 255),
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 110))
-
         self._draw_text(f"Счёт: {game.score}", (255, 255, 255),
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 150))
 
     def _draw_text(self, text, color, center=None, bottomright=None, is_small=False, is_large=False):
-        if is_large:
-            font = self.font_large
-        elif is_small:
-            font = self.font_small
-        else:
-            font = self.font
-
+        if is_large: font = self.font_large
+        elif is_small: font = self.font_small
+        else: font = self.font
         surf = font.render(str(text), True, color)
         rect = surf.get_rect()
         if center: rect.center = center
