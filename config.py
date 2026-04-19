@@ -14,7 +14,7 @@ class Config:
 
     # ПУТИ К МУЗЫКЕ
     MUSIC_PATHS = {
-        0: "./music/difficulty1.mp3",
+        0: "./music/difficulty.mp3",
         1: "./music/difficulty2.mp3",
         2: "./music/difficulty3.mp3"
     }

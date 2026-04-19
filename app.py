@@ -9,6 +9,13 @@ from ui import UIRenderer
 class Application:
     def __init__(self):
         pygame.init()
+        # --- ЯВНАЯ ИНИЦИАЛИЗАЦИЯ ЗВУКА ---
+        try:
+            pygame.mixer.init()
+        except Exception as e:
+            print(f"Ошибка загрузки аудио-драйвера: {e}")
+        # ---------------------------------
+
         self.screen = pygame.display.set_mode(
             (Config.WIN_WIDTH, Config.WIN_HEIGHT),
             pygame.FULLSCREEN | pygame.DOUBLEBUF
@@ -70,6 +77,8 @@ class Application:
             if self.cv_initialized:
                 self.game.state = "LEVEL_TRANSITION"
                 self.transition_start_ticks = current_time
+                # --- ЗАПУСК МУЗЫКИ ПОСЛЕ ЗАГРУЗКИ ---
+                self.game.play_music(self.game.current_level_index)
             return
 
         if self.game.state == "LEVEL_TRANSITION":
@@ -168,19 +177,20 @@ class Application:
         self.cleanup()
 
     def _handle_difficulty_selection(self):
+        # Меняем состояние НА LOADING до сброса, чтобы музыка не запускалась рано
         if self.menu_index == 0:
             self.game.difficulty = "EASY"
-            self.game.full_reset()
             self.game.state = "LOADING"
+            self.game.full_reset()
         elif self.menu_index == 1:
             self.game.difficulty = "NORMAL"
-            self.game.full_reset()
             self.game.state = "LOADING"
+            self.game.full_reset()
         elif self.menu_index == 2:
             if self.game.hard_unlocked:
                 self.game.difficulty = "HARD"
-                self.game.full_reset()
                 self.game.state = "LOADING"
+                self.game.full_reset()
         elif self.menu_index == 3:
             self.game.state = "MAIN_MENU"
             self.menu_index = 0
@@ -253,7 +263,8 @@ class Application:
                     if self.back_rect and self.back_rect.collidepoint(mouse_pos):
                         self.game.state = "MAIN_MENU"
                         self.game.stop_music()
-                elif event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_BACKSPACE, pygame.K_ESCAPE]:
+                elif event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_BACKSPACE,
+                                                                    pygame.K_ESCAPE]:
                     self.game.state = "MAIN_MENU"
                     self.game.stop_music()
 

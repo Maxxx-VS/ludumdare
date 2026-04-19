@@ -53,8 +53,11 @@ class GameEngine:
         l_lives = self.current_level_data.get("lives", -1)
         if l_lives != -1: self.lives = l_lives
 
-        # Запуск музыки для текущего этапа
-        self.play_music(index)
+        # --- ЗАЩИТА АВТОЗАПУСКА ---
+        # Запуск музыки разрешен только при непосредственном переходе между уровнями.
+        if self.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS"]:
+            self.play_music(index)
+
         self.next_pose()
 
     def next_pose(self):
