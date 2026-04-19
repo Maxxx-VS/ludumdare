@@ -25,6 +25,21 @@ class UIRenderer:
         panel_width = Config.WIN_WIDTH - self.right_panel_start
         img_display_width = panel_width - (self.panel_margin * 2)
 
+        # Загрузка фидбек-ассетов
+        self.ok_img = self._load_asset(Config.OK_IMAGE_PATH)
+        self.error_frames = self._load_gif(Config.ERROR_GIF_PATH)
+
+        if self.ok_img:
+            scale = img_display_width / self.ok_img.get_width()
+            new_size = (int(self.ok_img.get_width() * scale), int(self.ok_img.get_height() * scale))
+            self.ok_img = pygame.transform.smoothscale(self.ok_img, new_size)
+
+        for i, frame in enumerate(self.error_frames):
+            scale = img_display_width / frame.get_width()
+            new_size = (int(frame.get_width() * scale), int(frame.get_height() * scale))
+            self.error_frames[i] = pygame.transform.smoothscale(frame, new_size)
+
+        # Загрузка ассетов поз по сложностям
         self.pose_images = {"EASY": {}, "NORMAL": {}, "HARD": {}}
         for difficulty, poses in Config.POSE_IMAGES.items():
             for pose_key, path in poses.items():
@@ -208,17 +223,27 @@ class UIRenderer:
         self.screen.blit(s, (panel_rect.x, panel_rect.y))
         pygame.draw.rect(self.screen, (255, 255, 255), panel_rect, 2)
 
-        if not game.is_paused:
-            # Достаем картинку с учетом выбранной сложности
-            target_img = self.pose_images.get(game.difficulty, {}).get(game.target_pose)
-            if target_img:
-                img_rect = target_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
-                                                       self.panel_margin + target_img.get_height() // 2))
-                self.screen.blit(target_img, img_rect)
-            else:
-                target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
-                self._draw_text(target_text, (255, 255, 0),
-                                center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 50))
+        # Выбор картинки: пауза (фидбек) или игра (целевая поза)
+        res_img = None
+        if game.is_paused:
+            if game.last_result_type == "SUCCESS":
+                res_img = self.ok_img
+            elif game.last_result_type == "ERROR" and self.error_frames:
+                current_time = pygame.time.get_ticks()
+                frame_idx = (current_time // (1000 // self.gif_fps)) % len(self.error_frames)
+                res_img = self.error_frames[frame_idx]
+        else:
+            res_img = self.pose_images.get(game.difficulty, {}).get(game.target_pose)
+
+        if res_img:
+            img_rect = res_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
+                                                self.panel_margin + res_img.get_height() // 2))
+            self.screen.blit(res_img, img_rect)
+        elif not game.is_paused:
+            # Fallback, если картинка не найдена
+            target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
+            self._draw_text(target_text, (255, 255, 0),
+                            center=(self.right_panel_start + panel_rect.width // 2, self.panel_margin + 50))
 
         bottom_y = Config.WIN_HEIGHT - self.panel_margin
         self._draw_text("R / SPACE — рестарт", (180, 180, 180), is_small=True,

@@ -10,8 +10,7 @@ class GameEngine:
         self.difficulty = "EASY"
         self.hard_unlocked = False
         self.volume = Config.DEFAULT_VOLUME
-        self.full_reset()
-        self.last_result_type = None  # Может быть "SUCCESS" или "ERROR"
+        self.last_result_type = None
         self.full_reset()
 
     def play_music(self, index):
@@ -69,12 +68,11 @@ class GameEngine:
 
         self.next_pose()
 
-        # В методе next_pose сбрасываем тип результата
-        def next_pose(self):
-            self.target_pose = random.choice(self.current_level_data["pose_pool"])
-            self.completed = False
-            self.is_paused = False
-            self.last_result_type = None
+    def next_pose(self):
+        self.target_pose = random.choice(self.current_level_data["pose_pool"])
+        self.completed = False
+        self.is_paused = False
+        self.last_result_type = None
 
     def update(self, current_pose):
         if self.state != "PLAYING" or self.is_paused: return False

@@ -93,7 +93,7 @@ class Application:
 
         if self.game.is_paused:
             if current_time - self.success_time >= 1000:
-                # Если была ошибка, вычитаем жизнь ПОСЛЕ завершения паузы
+                # Если была ошибка, вычитаем жизнь ПОСЛЕ паузы
                 if self.game.last_result_type == "ERROR":
                     self.game.lives -= 1
                     if self.game.lives <= 0:
@@ -125,23 +125,11 @@ class Application:
 
         pose_limit = self.game.current_level_data.get("pose_time_limit", 3000)
 
-        if self.game.is_paused:
-            if current_time - self.success_time >= 1000:
-                self.game.next_pose()
-                self.last_pose_change = current_time
-            return
-
+        # ЛОГИКА ОШИБКИ ПО ТАЙМАУТУ (Установка паузы)
         if current_time - self.last_pose_change >= pose_limit:
             self.game.is_paused = True
             self.game.last_result_type = "ERROR"
             self.success_time = current_time
-            self.game.lives -= 1
-            if self.game.lives <= 0:
-                self.game.state = "LOSE"
-                self.game.stop_music()
-            if self.game.state == "PLAYING":
-                self.game.next_pose()
-                self.last_pose_change = current_time
 
     def run(self):
         while self.running:
@@ -187,6 +175,7 @@ class Application:
                 if is_correct and self.game.completed and not self.game.is_paused:
                     self.game.lives = min(self.game.lives + 1, 10)
                     self.game.is_paused = True
+                    self.game.last_result_type = "SUCCESS"
                     self.success_time = pygame.time.get_ticks()
 
             self.view.draw_skeleton(frame, kpts)

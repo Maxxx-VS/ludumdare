@@ -14,8 +14,6 @@ class Config:
     # ПУТИ К ГРАФИКЕ
     LOGO_PATH = "./graphics/logo.png"
     LOADING_GIF_PATH = "./graphics/loading.gif"
-
-    # Пути к фидбек-изображениям
     OK_IMAGE_PATH = "./graphics/okey.png"
     ERROR_GIF_PATH = "./graphics/error.gif"
 
@@ -26,7 +24,7 @@ class Config:
         2: "./music/difficulty3.mp3"
     }
 
-    # ПУТИ К ИЗОБРАЖЕНИЯМ ПОЗ
+    # ПУТИ К ИЗОБРАЖЕНИЯМ ПОЗ ПО СЛОЖНОСТЯМ
     POSE_IMAGES = {
         "EASY": {
             "T_POSE": "./graphics/hum_t_pose.png",
