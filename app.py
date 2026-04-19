@@ -36,10 +36,8 @@ class Application:
 
                 # Проверяем, существует ли файл физически
                 if os.path.exists(abs_path):
-                    print("[DEBUG] Файл НАЙДЕН на диске. Загружаем...")
+                    print("[DEBUG] Файлы музыки НАЙДЕНЫ на диске. Загружаем...")
                     pygame.mixer.music.load(abs_path)  # Грузим по абсолютному пути
-                    print("[DEBUG] Музыка загружена. Включаем воспроизведение...")
-                    pygame.mixer.music.play(-1)
                     print("[DEBUG] Команда play(-1) успешно отправлена микшеру.")
                 else:
                     print("[DEBUG] ОШИБКА: Файл НЕ СУЩЕСТВУЕТ по этому пути!")
