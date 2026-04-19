@@ -274,6 +274,12 @@ class UIRenderer:
                                                 self.panel_margin + res_img.get_height() // 2))
             self.screen.blit(res_img, img_rect)
 
+            if not game.is_paused:
+                target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
+                self._draw_text(target_text, (255, 255, 0),
+                                center=(self.right_panel_start + panel_rect.width // 2, img_rect.bottom + 40),
+                                is_small=True)
+
             if game.state == "PLAYING":
                 self.distractor.update(current_time, img_rect, game.is_paused, game.current_level_data)
                 if not game.is_paused:
