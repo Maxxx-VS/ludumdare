@@ -95,7 +95,7 @@ class Config:
                 "pose_time_limit": 5000,
                 "lives": 10,
                 "distractor_interval": 10000,
-                "distractor_prob": 0.5
+                "distractor_prob": 0.75
             },
             {
                 "duration": 40,
@@ -103,7 +103,7 @@ class Config:
                 "pose_time_limit": 4000,
                 "lives": -1,
                 "distractor_interval": 10000,
-                "distractor_prob": 1
+                "distractor_prob": 0.75
             }
         ],
         "NORMAL": [
@@ -113,7 +113,7 @@ class Config:
                 "pose_time_limit": 4000,
                 "lives": 5,
                 "distractor_interval": 5000,
-                "distractor_prob": 0.5
+                "distractor_prob": 0.75
             },
             {
                 "duration": 40,
@@ -121,7 +121,7 @@ class Config:
                 "pose_time_limit": 3000,
                 "lives": -1,
                 "distractor_interval": 5000,
-                "distractor_prob": 0.5
+                "distractor_prob": 0.75
             },
             {
                 "duration": 45,
@@ -129,7 +129,7 @@ class Config:
                 "pose_time_limit": 2500,
                 "lives": -1,
                 "distractor_interval": 5000,
-                "distractor_prob": 0.5
+                "distractor_prob": 0.75
             }
         ],
         "HARD": [
@@ -139,7 +139,7 @@ class Config:
                 "pose_time_limit": 1500,
                 "lives": 3,
                 "distractor_interval": 4000,
-                "distractor_prob": 0.5
+                "distractor_prob": 0.75
             },
             {
                 "duration": 50,
@@ -147,7 +147,7 @@ class Config:
                 "pose_time_limit": 1000,
                 "lives": -1,
                 "distractor_interval": 4000,
-                "distractor_prob": 0.5
+                "distractor_prob": 0.75
             },
             {
                 "duration": 50,
@@ -155,7 +155,7 @@ class Config:
                 "pose_time_limit": 500,
                 "lives": -1,
                 "distractor_interval": 4000,
-                "distractor_prob": 0.5
+                "distractor_prob": 0.75
             }
         ]
     }
