@@ -238,38 +238,22 @@ class UIRenderer:
             img_rect = res_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
                                                 self.panel_margin + res_img.get_height() // 2))
 
-            # 1. СНАЧАЛА рисуем картинку позы/галочки (она будет лежать "внизу")
+            # 1. СНАЧАЛА рисуем картинку позы (она ложится на самый нижний слой)
             self.screen.blit(res_img, img_rect)
 
-            # 2. ЗАТЕМ обновляем и рисуем дистрактора
+            # 2. ЗАТЕМ обновляем и рисуем дистрактора (он ляжет ПОВЕРХ позы)
             if game.state == "PLAYING":
                 self.distractor.update(current_time, img_rect, game.is_paused, game.current_level_data)
 
                 if not game.is_paused:
-                    # Ограничиваем зону отрисовки правой панелью (чтобы не лез на камеру)
+                    # Ограничиваем зону отрисовки правой панелью (чтобы не лез на окно OpenCV)
                     self.screen.set_clip(panel_rect)
 
-                    # Рисуем дистрактора (он ложится ПОВЕРХ картинки позы)
+                    # Рисуем дистрактора
                     self.distractor.draw(self.screen, current_time)
 
                     # Обязательно снимаем маску
                     self.screen.set_clip(None)
-
-                # 2. Рисуем дистрактора, если игра не на паузе
-                if not game.is_paused:
-                    # Устанавливаем маску: Pygame будет рисовать ТОЛЬКО внутри panel_rect
-                    # Всё, что вылезает за её пределы (на окно камеры), будет обрезано!
-                    self.screen.set_clip(panel_rect)
-
-                    self.distractor.draw(self.screen, current_time)
-
-                    # Обязательно снимаем маску, чтобы остальной UI рисовался нормально
-                    self.screen.set_clip(None)
-
-                    # 3. Рисуем целевую позу ПОСЛЕ дистрактора.
-                # Теперь дистрактор будет пробегать визуально "под" картинкой позы,
-                # и выезжать из-под левого края окна камеры.
-            self.screen.blit(res_img, img_rect)
 
         elif not game.is_paused:
             target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
