@@ -237,13 +237,25 @@ class UIRenderer:
         if res_img:
             img_rect = res_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
                                                 self.panel_margin + res_img.get_height() // 2))
-            self.screen.blit(res_img, img_rect)
-
-            # --- ОБНОВЛЕННЫЙ ВЫЗОВ С ПЕРЕДАЧЕЙ ДАННЫХ УРОВНЯ ---
             if game.state == "PLAYING":
+                # 1. Сначала обновляем координаты дистрактора
                 self.distractor.update(current_time, img_rect, game.is_paused, game.current_level_data)
+
+                # 2. Рисуем дистрактора, если игра не на паузе
                 if not game.is_paused:
+                    # Устанавливаем маску: Pygame будет рисовать ТОЛЬКО внутри panel_rect
+                    # Всё, что вылезает за её пределы (на окно камеры), будет обрезано!
+                    self.screen.set_clip(panel_rect)
+
                     self.distractor.draw(self.screen, current_time)
+
+                    # Обязательно снимаем маску, чтобы остальной UI рисовался нормально
+                    self.screen.set_clip(None)
+
+                    # 3. Рисуем целевую позу ПОСЛЕ дистрактора.
+                # Теперь дистрактор будет пробегать визуально "под" картинкой позы,
+                # и выезжать из-под левого края окна камеры.
+            self.screen.blit(res_img, img_rect)
 
         elif not game.is_paused:
             target_text = Config.POSE_NAMES_RU.get(game.target_pose, "???")
