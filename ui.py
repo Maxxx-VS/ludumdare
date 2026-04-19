@@ -237,9 +237,23 @@ class UIRenderer:
         if res_img:
             img_rect = res_img.get_rect(center=(self.right_panel_start + panel_rect.width // 2,
                                                 self.panel_margin + res_img.get_height() // 2))
+
+            # 1. СНАЧАЛА рисуем картинку позы/галочки (она будет лежать "внизу")
+            self.screen.blit(res_img, img_rect)
+
+            # 2. ЗАТЕМ обновляем и рисуем дистрактора
             if game.state == "PLAYING":
-                # 1. Сначала обновляем координаты дистрактора
                 self.distractor.update(current_time, img_rect, game.is_paused, game.current_level_data)
+
+                if not game.is_paused:
+                    # Ограничиваем зону отрисовки правой панелью (чтобы не лез на камеру)
+                    self.screen.set_clip(panel_rect)
+
+                    # Рисуем дистрактора (он ложится ПОВЕРХ картинки позы)
+                    self.distractor.draw(self.screen, current_time)
+
+                    # Обязательно снимаем маску
+                    self.screen.set_clip(None)
 
                 # 2. Рисуем дистрактора, если игра не на паузе
                 if not game.is_paused:
