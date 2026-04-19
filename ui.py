@@ -39,6 +39,15 @@ class UIRenderer:
             new_size = (int(frame.get_width() * scale), int(frame.get_height() * scale))
             self.error_frames[i] = pygame.transform.smoothscale(frame, new_size)
 
+        # ЗАГРУЗКА И МАСШТАБИРОВАНИЕ ФИНАЛЬНЫХ ЭКРАНОВ
+        self.win_img = self._load_asset(Config.WIN_IMAGE_PATH)
+        if self.win_img:
+            self.win_img = pygame.transform.smoothscale(self.win_img, (Config.WIN_WIDTH, Config.WIN_HEIGHT))
+
+        self.lose_img = self._load_asset(Config.LOSE_IMAGE_PATH)
+        if self.lose_img:
+            self.lose_img = pygame.transform.smoothscale(self.lose_img, (Config.WIN_WIDTH, Config.WIN_HEIGHT))
+
         # Загрузка ассетов поз по сложностям
         self.pose_images = {"EASY": {}, "NORMAL": {}, "HARD": {}}
         for difficulty, poses in Config.POSE_IMAGES.items():
@@ -198,6 +207,19 @@ class UIRenderer:
                         center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 20), is_small=True)
         self._draw_text("Приготовьтесь!", (0, 255, 0), center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2 + 80))
 
+    # НОВЫЙ МЕТОД ДЛЯ ФИНАЛЬНЫХ ЭКРАНОВ
+    def draw_end_screen(self, state):
+        self.screen.fill((0, 0, 0))
+        if state == "WIN" and self.win_img:
+            self.screen.blit(self.win_img, (0, 0))
+        elif state == "LOSE" and self.lose_img:
+            self.screen.blit(self.lose_img, (0, 0))
+        else:
+            # Fallback (если картинки не найдены)
+            msg = "ПОБЕДА!" if state == "WIN" else "ИГРА ОКОНЧЕНА"
+            self._draw_text(msg, (255, 255, 255),
+                            center=(Config.WIN_WIDTH // 2, Config.WIN_HEIGHT // 2), is_large=True)
+
     def draw(self, frame, game, cur_pose, is_correct):
         if game.state == "SPLASH":
             self.draw_splash()
@@ -264,14 +286,6 @@ class UIRenderer:
 
         self._draw_text(f"Счёт: {game.score}", (255, 255, 255),
                         bottomright=(Config.WIN_WIDTH - self.panel_margin, bottom_y - 150))
-
-        if game.state in ["WIN", "LOSE"]:
-            overlay = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 200))
-            self.screen.blit(overlay, (panel_rect.x, panel_rect.y))
-            msg = "ПОБЕДА!" if game.state == "WIN" else "ИГРА ОКОНЧЕНА"
-            self._draw_text(msg, (255, 255, 255),
-                            center=(self.right_panel_start + panel_rect.width // 2, Config.WIN_HEIGHT // 2))
 
     def _draw_text(self, text, color, center=None, bottomright=None, is_small=False, is_large=False):
         if is_large:

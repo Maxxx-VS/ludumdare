@@ -38,6 +38,7 @@ class Application:
         self.level_start_ticks = 0
         self.transition_start_ticks = 0
         self.success_time = 0
+        self.end_state_ticks = 0  # НОВАЯ ПЕРЕМЕННАЯ ДЛЯ ФИНАЛЬНЫХ ЭКРАНОВ
         self.running = True
 
         self.cv_loading_thread = None
@@ -91,14 +92,26 @@ class Application:
                 self.last_pose_change = current_time
             return
 
+        # ТАЙМЕРЫ ЭКРАНОВ ПОБЕДЫ И ПОРАЖЕНИЯ
+        if self.game.state == "WIN":
+            if current_time - self.end_state_ticks >= 5000:  # 5 секунд
+                self.game.state = "MAIN_MENU"
+            return
+
+        if self.game.state == "LOSE":
+            if current_time - self.end_state_ticks >= 3000:  # 3 секунды
+                self.game.state = "MAIN_MENU"
+            return
+
         if self.game.is_paused:
             if current_time - self.success_time >= 1000:
-                # Если была ошибка, вычитаем жизнь ПОСЛЕ паузы
                 if self.game.last_result_type == "ERROR":
                     self.game.lives -= 1
                     if self.game.lives <= 0:
                         self.game.state = "LOSE"
+                        self.end_state_ticks = current_time
                         self.game.stop_music()
+                        return  # Выходим, чтобы не продолжать играть
 
                 if self.game.state == "PLAYING":
                     self.game.next_pose()
@@ -114,6 +127,7 @@ class Application:
             next_lvl = self.game.current_level_index + 1
             if next_lvl >= len(Config.DIFFICULTIES[self.game.difficulty]):
                 self.game.state = "WIN"
+                self.end_state_ticks = current_time
                 self.game.stop_music()
                 if self.game.difficulty == "NORMAL":
                     self.game.hard_unlocked = True
@@ -125,7 +139,6 @@ class Application:
 
         pose_limit = self.game.current_level_data.get("pose_time_limit", 3000)
 
-        # ЛОГИКА ОШИБКИ ПО ТАЙМАУТУ (Установка паузы)
         if current_time - self.last_pose_change >= pose_limit:
             self.game.is_paused = True
             self.game.last_result_type = "ERROR"
@@ -138,7 +151,9 @@ class Application:
 
             mouse_pos = pygame.mouse.get_pos()
 
-            if self.game.state in ["SPLASH", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS", "LOADING"]:
+            # ОБНОВЛЕННЫЙ СПИСОК СОСТОЯНИЙ БЕЗ КАМЕРЫ (ВКЛЮЧАЯ WIN И LOSE)
+            if self.game.state in ["SPLASH", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS", "LOADING", "WIN",
+                                   "LOSE"]:
                 if self.game.state == "SPLASH":
                     self.ui_renderer.draw_splash()
                 elif self.game.state == "MAIN_MENU":
@@ -150,6 +165,8 @@ class Application:
                     self.back_rect, self.slider_rect = self.ui_renderer.draw_settings(mouse_pos, self.game.volume)
                 elif self.game.state == "AUTHORS":
                     self.back_rect = self.ui_renderer.draw_authors(mouse_pos)
+                elif self.game.state in ["WIN", "LOSE"]:
+                    self.ui_renderer.draw_end_screen(self.game.state)
                 else:
                     self.ui_renderer.draw_loading()
 
@@ -262,8 +279,10 @@ class Application:
                     if self.back_rect and self.back_rect.collidepoint(mouse_pos):
                         self.game.state = "MAIN_MENU"
 
+            # БЛОКИРУЕМ РЕСТАРТ ВО ВРЕМЯ ЭКРАНОВ WIN И LOSE (чтобы досмотрели анимацию/картинку)
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
-                if self.game.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS"]:
+                if self.game.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS",
+                                           "WIN", "LOSE"]:
                     self.game.full_reset()
                     self.transition_start_ticks = pygame.time.get_ticks()
 

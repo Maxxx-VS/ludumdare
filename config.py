@@ -1,5 +1,6 @@
 import os
 
+
 class Config:
     MODEL_PT = "yolo11s-pose.pt"
     MODEL_ENGINE = "yolo11s-pose.engine"
@@ -16,6 +17,10 @@ class Config:
     LOADING_GIF_PATH = "./graphics/loading.gif"
     OK_IMAGE_PATH = "./graphics/okey.png"
     ERROR_GIF_PATH = "./graphics/error.gif"
+
+    # НОВЫЕ ПУТИ
+    WIN_IMAGE_PATH = "./graphics/youwin.png"
+    LOSE_IMAGE_PATH = "./graphics/gameover.png"
 
     # ПУТИ К МУЗЫКЕ
     MUSIC_PATHS = {
@@ -131,7 +136,7 @@ class Config:
                 "duration": 50,
                 "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
                 "pose_time_limit": 500,
-                "lives": -1 # Жизни переносятся
+                "lives": -1  # Жизни переносятся
             }
         ]
     }
