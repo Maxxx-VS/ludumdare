@@ -103,7 +103,7 @@ class Config:
                 "pose_time_limit": 4000,
                 "lives": -1,
                 "distractor_interval": 10000,
-                "distractor_prob": 0.5
+                "distractor_prob": 1
             }
         ],
         "NORMAL": [
