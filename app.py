@@ -38,10 +38,6 @@ class Application:
         self.menu_rects = []
         self.back_rect = None
 
-        # Настройки меню сложности
-        self.diff_index = 0
-        self.diff_rects = []
-
     def init_cv_task(self):
         try:
             from engine import PoseEngine
@@ -64,7 +60,7 @@ class Application:
 
         if self.game.state == "SPLASH":
             if current_time - self.start_ticks >= 2000:
-                self.game.state = "MAIN_MENU"
+                self.game.state = "MAIN_MENU"  # После логотипа переходим в меню
             return
 
         if self.game.state == "LOADING":
@@ -90,14 +86,10 @@ class Application:
 
         if self.game.time_left <= 0:
             next_lvl = self.game.current_level_index + 1
-            # Обращаемся к массиву уровней выбранной сложности
-            levels_count = len(Config.DIFFICULTIES[self.game.current_difficulty])
-
-            if next_lvl >= levels_count:
+            if next_lvl >= len(Config.DIFFICULTIES[self.game.difficulty]):
                 self.game.state = "WIN"
-                if self.game.current_difficulty == "NORMAL" and not self.game.hard_unlocked:
+                if self.game.difficulty == "NORMAL":
                     self.game.hard_unlocked = True
-                    self.game.save_data()
             else:
                 self.game.load_level(next_lvl)
                 self.game.state = "LEVEL_TRANSITION"
@@ -119,12 +111,6 @@ class Application:
                 self.game.next_pose()
                 self.last_pose_change = current_time
 
-    def start_game_from_difficulty(self):
-        diffs = ["EASY", "NORMAL", "HARD"]
-        self.game.set_difficulty(diffs[self.diff_index])
-        self.game.full_reset()
-        self.game.state = "LOADING"
-
     def run(self):
         while self.running:
             self.process_events()
@@ -133,15 +119,14 @@ class Application:
             mouse_pos = pygame.mouse.get_pos()
 
             # Отрисовка системных экранов, до инициализации CV
-            sys_states = ["SPLASH", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS", "LOADING"]
-            if self.game.state in sys_states:
+            if self.game.state in ["SPLASH", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS", "LOADING"]:
                 if self.game.state == "SPLASH":
                     self.ui_renderer.draw_splash()
                 elif self.game.state == "MAIN_MENU":
                     self.menu_rects = self.ui_renderer.draw_main_menu(self.menu_index, mouse_pos)
                 elif self.game.state == "DIFFICULTY_MENU":
-                    self.diff_rects, self.back_rect = self.ui_renderer.draw_difficulty_menu(
-                        self.diff_index, mouse_pos, self.game.hard_unlocked)
+                    self.menu_rects = self.ui_renderer.draw_difficulty_menu(self.menu_index, mouse_pos,
+                                                                            self.game.hard_unlocked)
                 elif self.game.state == "SETTINGS":
                     self.back_rect = self.ui_renderer.draw_settings(mouse_pos)
                 elif self.game.state == "AUTHORS":
@@ -180,19 +165,33 @@ class Application:
             self.clock.tick(Config.FPS)
         self.cleanup()
 
+    def _handle_difficulty_selection(self):
+        if self.menu_index == 0:
+            self.game.difficulty = "EASY"
+            self.game.full_reset()
+            self.game.state = "LOADING"
+        elif self.menu_index == 1:
+            self.game.difficulty = "NORMAL"
+            self.game.full_reset()
+            self.game.state = "LOADING"
+        elif self.menu_index == 2:
+            if self.game.hard_unlocked:
+                self.game.difficulty = "HARD"
+                self.game.full_reset()
+                self.game.state = "LOADING"
+        elif self.menu_index == 3:
+            self.game.state = "MAIN_MENU"
+            self.menu_index = 0
+
     def process_events(self):
         mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                # В главном меню Escape выходит, во вложенных - возвращает назад
-                if self.game.state in ["SETTINGS", "AUTHORS",
-                                       "DIFFICULTY_MENU"] and event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    self.game.state = "MAIN_MENU"
-                else:
-                    self.running = False
+                self.running = False
 
             # --- Логика меню ---
             if self.game.state == "MAIN_MENU":
+                # Обработка мыши
                 if event.type == pygame.MOUSEMOTION:
                     for i, rect in enumerate(self.menu_rects):
                         if rect.collidepoint(mouse_pos):
@@ -203,11 +202,12 @@ class Application:
                             self.menu_index = i
                             if self.menu_index == 0:
                                 self.game.state = "DIFFICULTY_MENU"
-                                self.diff_index = 0
+                                self.menu_index = 0
                             elif self.menu_index == 1:
                                 self.game.state = "SETTINGS"
                             elif self.menu_index == 2:
                                 self.game.state = "AUTHORS"
+                # Обработка клавиатуры (Стрелки + Enter)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.menu_index = (self.menu_index - 1) % 3
@@ -216,55 +216,48 @@ class Application:
                     elif event.key == pygame.K_RETURN:
                         if self.menu_index == 0:
                             self.game.state = "DIFFICULTY_MENU"
-                            self.diff_index = 0
+                            self.menu_index = 0
                         elif self.menu_index == 1:
                             self.game.state = "SETTINGS"
                         elif self.menu_index == 2:
                             self.game.state = "AUTHORS"
 
-            # --- Логика меню сложности ---
             elif self.game.state == "DIFFICULTY_MENU":
+                # Обработка мыши
                 if event.type == pygame.MOUSEMOTION:
-                    for i, rect in enumerate(self.diff_rects):
+                    for i, rect in enumerate(self.menu_rects):
                         if rect.collidepoint(mouse_pos):
-                            if i == 2 and not self.game.hard_unlocked:
-                                continue  # Нельзя выделить заблокированный
-                            self.diff_index = i
+                            self.menu_index = i
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if self.back_rect and self.back_rect.collidepoint(mouse_pos):
-                        self.game.state = "MAIN_MENU"
-                    else:
-                        for i, rect in enumerate(self.diff_rects):
-                            if rect.collidepoint(mouse_pos):
-                                if i == 2 and not self.game.hard_unlocked:
-                                    continue
-                                self.diff_index = i
-                                self.start_game_from_difficulty()
+                    for i, rect in enumerate(self.menu_rects):
+                        if rect.collidepoint(mouse_pos):
+                            self.menu_index = i
+                            self._handle_difficulty_selection()
+                # Обработка клавиатуры (Стрелки + Enter)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
-                        self.diff_index = (self.diff_index - 1) % 3
-                        if self.diff_index == 2 and not self.game.hard_unlocked:
-                            self.diff_index = 1
+                        self.menu_index = (self.menu_index - 1) % 4
                     elif event.key == pygame.K_DOWN:
-                        self.diff_index = (self.diff_index + 1) % 3
-                        if self.diff_index == 2 and not self.game.hard_unlocked:
-                            self.diff_index = 0
+                        self.menu_index = (self.menu_index + 1) % 4
                     elif event.key == pygame.K_RETURN:
-                        self.start_game_from_difficulty()
-                    elif event.key == pygame.K_BACKSPACE:
+                        self._handle_difficulty_selection()
+                    elif event.key in [pygame.K_BACKSPACE, pygame.K_ESCAPE]:
                         self.game.state = "MAIN_MENU"
+                        self.menu_index = 0
 
             elif self.game.state in ["SETTINGS", "AUTHORS"]:
+                # Обработка кнопки "Back"
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self.back_rect and self.back_rect.collidepoint(mouse_pos):
                         self.game.state = "MAIN_MENU"
-                elif event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_BACKSPACE]:
+                elif event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_BACKSPACE,
+                                                                    pygame.K_ESCAPE]:
                     self.game.state = "MAIN_MENU"
 
             # --- Логика внутри игры ---
             if event.type == pygame.KEYDOWN and event.key in [pygame.K_SPACE, pygame.K_r]:
-                sys_states = ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS"]
-                if self.game.state not in sys_states:
+                # Рестарт во время игры, но блокируем его, если мы в меню
+                if self.game.state not in ["SPLASH", "LOADING", "MAIN_MENU", "DIFFICULTY_MENU", "SETTINGS", "AUTHORS"]:
                     self.game.full_reset()
                     self.transition_start_ticks = pygame.time.get_ticks()
 
