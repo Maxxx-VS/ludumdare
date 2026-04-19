@@ -1,6 +1,7 @@
 import pygame
 import cv2
 import threading
+import os
 from config import Config
 from game_logic import GameEngine
 from ui import UIRenderer
@@ -8,21 +9,42 @@ from ui import UIRenderer
 
 class Application:
     def __init__(self):
+        print("\n[DEBUG] === ЗАПУСК ИГРЫ ===")
+        print("[DEBUG] Инициализация Pygame...")
         pygame.init()
-        # --- ЯВНАЯ ИНИЦИАЛИЗАЦИЯ ЗВУКА ---
+
+        # --- ЯВНАЯ ИНИЦИАЛИЗАЦИЯ ЗВУКА С ДЕБАГОМ ---
         try:
+            print("[DEBUG] Инициализация микшера...")
             pygame.mixer.init()
+            print("[DEBUG] Микшер успешно инициализирован.")
 
             # --- ТЕСТОВЫЙ ЗАПУСК МУЗЫКИ СО СТАРТА ---
-            test_track = Config.MUSIC_PATHS.get(0)  # Берем difficulty1.mp3
+            test_track = Config.MUSIC_PATHS.get(0)
+            print(f"[DEBUG] Относительный путь из конфига: {test_track}")
+
             if test_track:
-                pygame.mixer.music.load(test_track)
-                pygame.mixer.music.play(-1)  # Запускаем бесконечно
+                # Получаем полный абсолютный путь к файлу
+                abs_path = os.path.abspath(test_track)
+                print(f"[DEBUG] Абсолютный путь к файлу: {abs_path}")
+
+                # Проверяем, существует ли файл физически
+                if os.path.exists(abs_path):
+                    print("[DEBUG] Файл НАЙДЕН на диске. Загружаем...")
+                    pygame.mixer.music.load(abs_path)  # Грузим по абсолютному пути
+                    print("[DEBUG] Музыка загружена. Включаем воспроизведение...")
+                    pygame.mixer.music.play(-1)
+                    print("[DEBUG] Команда play(-1) успешно отправлена микшеру.")
+                else:
+                    print("[DEBUG] ОШИБКА: Файл НЕ СУЩЕСТВУЕТ по этому пути!")
+            else:
+                print("[DEBUG] ОШИБКА: Трек под индексом 0 не найден в Config!")
             # ----------------------------------------
 
         except Exception as e:
-            print(f"Ошибка загрузки аудио-драйвера: {e}")
+            print(f"[DEBUG] КРИТИЧЕСКАЯ ОШИБКА АУДИО: {e}")
         # ---------------------------------
+        print("[DEBUG] === ИНИЦИАЛИЗАЦИЯ ОКНА ===\n")
 
         self.screen = pygame.display.set_mode(
             (Config.WIN_WIDTH, Config.WIN_HEIGHT),
