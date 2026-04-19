@@ -8,6 +8,9 @@ class Config:
     CONFIDENCE = 0.6
     FPS = 30
 
+    # Файл для сохранения прогресса (разблокировка Hard)
+    SAVE_FILE = "save_data.json"
+
     # ПУТИ К ГРАФИКЕ
     LOGO_PATH = "./graphics/logo.png"
     LOADING_GIF_PATH = "./graphics/loading.gif"
@@ -50,23 +53,60 @@ class Config:
         "Design - Yaroslav Kutsypin"
     ]
 
-    LEVELS = [
-        {
-            "duration": 30,
-            "pose_pool": ["T_POSE", "HANDS_UP"],
-            "pose_time_limit": 4000,
-            "lives": 5
-        },
-        {
-            "duration": 40,
-            "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP"],
-            "pose_time_limit": 3000,
-            "lives": -1
-        },
-        {
-            "duration": 45,
-            "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
-            "pose_time_limit": 2000,
-            "lives": -1
-        }
-    ]
+    # Уровни сложности
+    DIFFICULTIES = {
+        "EASY": [
+            {
+                "duration": 30,
+                "pose_pool": ["T_POSE", "HANDS_UP"],
+                "pose_time_limit": 5000, # Даем много времени
+                "lives": 10              # Много жизней
+            },
+            {
+                "duration": 40,
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE"],
+                "pose_time_limit": 4000,
+                "lives": -1
+            }
+        ],
+        "NORMAL": [
+            {
+                "duration": 30,
+                "pose_pool": ["T_POSE", "HANDS_UP"],
+                "pose_time_limit": 4000,
+                "lives": 5               # Стандарт
+            },
+            {
+                "duration": 40,
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP"],
+                "pose_time_limit": 3000,
+                "lives": -1
+            },
+            {
+                "duration": 45,
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_time_limit": 2000,
+                "lives": -1
+            }
+        ],
+        "HARD": [
+            {
+                "duration": 40,
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_time_limit": 2000,
+                "lives": 1               # Всего 1 жизнь, права на ошибку нет
+            },
+            {
+                "duration": 50,
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_time_limit": 1500, # Очень мало времени на реакцию
+                "lives": -1
+            },
+            {
+                "duration": 60,
+                "pose_pool": ["T_POSE", "HANDS_UP", "ONE_HAND_SIDE", "ONE_HAND_UP", "STAR"],
+                "pose_time_limit": 1000, # Экстрим
+                "lives": -1
+            }
+        ]
+    }
