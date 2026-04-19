@@ -12,6 +12,14 @@ class Application:
         # --- ЯВНАЯ ИНИЦИАЛИЗАЦИЯ ЗВУКА ---
         try:
             pygame.mixer.init()
+
+            # --- ТЕСТОВЫЙ ЗАПУСК МУЗЫКИ СО СТАРТА ---
+            test_track = Config.MUSIC_PATHS.get(0)  # Берем difficulty1.mp3
+            if test_track:
+                pygame.mixer.music.load(test_track)
+                pygame.mixer.music.play(-1)  # Запускаем бесконечно
+            # ----------------------------------------
+
         except Exception as e:
             print(f"Ошибка загрузки аудио-драйвера: {e}")
         # ---------------------------------
