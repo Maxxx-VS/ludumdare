@@ -50,10 +50,10 @@ class Config:
         },
         "HARD": {
             "T_POSE": "./graphics/crab_t_pose.png",
-            "HANDS_UP": "./crab_hands_up.png",
-            "ONE_HAND_UP": "./crab_one_hand_up.png",
-            "ONE_HAND_SIDE": "./crab_one_hand_side.png",
-            "STAR": "./crab_star.png"
+            "HANDS_UP": "./graphics/crab_hands_up.png",
+            "ONE_HAND_UP": "./graphics/crab_one_hand_up.png",
+            "ONE_HAND_SIDE": "./graphics/crab_one_hand_side.png",
+            "STAR": "./graphics/crab_star.png"
         }
     }
 
